@@ -34,3 +34,19 @@ memory/history/
 
 # Worktrees
 .worktrees/
+
+# MCP 服务器
+mcp-server/node_modules/
+mcp-server/dist/
+mcp-server/.browser-profiles/
+mcp-server/.mcp.json
+mcp-server/test-persistence.cjs
+
+# 浏览器配置（包含登录状态）
+.browser-profiles/
+
+# MCP 配置文件
+.mcp.json
+
+# 小红书图片输出
+xhs-images/
