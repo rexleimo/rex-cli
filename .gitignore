@@ -1,0 +1,33 @@
+# 隐私和安全文件
+.env
+.env.local
+.env.*.local
+credentials.json
+*.pem
+*.key
+auth.json
+token.json
+secrets.json
+
+# 临时文件
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+
+# 大文件（图片、视频）
+images/
+download/
+cover-image.png
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mov
+
+# 历史记录（可能包含敏感信息）
+memory/history/
+
+# Claude 本地配置
+.claude/

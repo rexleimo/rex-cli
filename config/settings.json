@@ -1,0 +1,43 @@
+{
+  "assistant": {
+    "name": "小红书运营助手",
+    "version": "1.0.0"
+  },
+  "limits": {
+    "daily_posts": 3,
+    "daily_interactions": 50,
+    "min_interval_seconds": 5,
+    "max_interval_seconds": 30
+  },
+  "behavior": {
+    "randomize_interval": true,
+    "auto_pause_on_error": true,
+    "log_level": "detailed"
+  },
+  "chrome": {
+    "headless": false,
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "anti_detection": {
+    "enabled": true,
+    "stealth_mode": {
+      "hide_webdriver": true,
+      "randomize_plugins": true,
+      "modify_navigator": true,
+      "modify_permissions": true
+    },
+    "behavior_simulation": {
+      "random_delay": {
+        "min_ms": 3000,
+        "max_ms": 15000
+      },
+      "human_scroll": true,
+      "human_click": true,
+      "human_type": true,
+      "mouse_trajectory": true
+    }
+  }
+}

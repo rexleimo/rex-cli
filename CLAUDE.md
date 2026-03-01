@@ -1,0 +1,121 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+This is a **Xiaohongshu (小红书) Operations Assistant** - an AI agent framework that uses Claude Code with Chrome DevTools MCP to automate operations on Xiaohongshu (xiaohongshu.com), a Chinese social media platform.
+
+## Core Architecture
+
+```
+User Task → Claude Code → Chrome DevTools MCP → Xiaohongshu Web
+                     ↓
+              Memory System (JSON files)
+              - skills/      # Learned skills
+              - specs/       # Safety specifications
+              - history/     # Operation records
+              - knowledge/   # Knowledge base
+```
+
+## Directory Structure
+
+```
+aios/
+├── docs/plans/           # Design and implementation documents
+├── memory/               # Memory system (JSON-based)
+│   ├── skills/           # Operational skills (publish笔记, 互动操作, 数据分析)
+│   ├── specs/            # Safety specifications (行为规范, 风险检测)
+│   ├── history/         # Operation history records
+│   └── knowledge/       # Knowledge base (敏感词库, 热门话题)
+├── tasks/                # Task tracking (pending/done/failed)
+└── config/              # Settings (settings.json)
+```
+
+## Key Files
+
+- `config/settings.json` - Assistant configuration (limits, behavior, Chrome options)
+- `memory/skills/*.json` - Skill definitions for operations
+- `memory/specs/*.json` - Safety and risk detection rules
+- `docs/plans/*.md` - Design and implementation documentation
+
+## Commands & Operations
+
+This is not a traditional code project with build/test commands. Instead:
+
+1. **Task Execution**: User gives natural language tasks (e.g., "帮我发布一篇笔记", "关注10个博主")
+2. **Skill Retrieval**: Claude Code looks up relevant skills in `memory/skills/`
+3. **Browser Control**: Uses Chrome DevTools MCP to execute operations
+4. **Learning**: Results are recorded to `memory/history/` for future improvement
+
+## Images Directory
+
+```
+aios/
+├── images/              # Generated cover images and illustrations
+│   └── (per post)       # Each post should have unique images
+...
+```
+
+## Image Generation Guidelines
+
+**IMPORTANT**: Each post MUST have unique, matching cover images!
+
+### 配图方式选择
+
+根据内容类型选择合适的配图方式：
+
+| 内容类型 | 推荐方式 | 说明 |
+|---------|---------|------|
+| 恋爱日常/宿舍故事/情绪变化 | **剧本式多图生成** | 生成4-9张独立画面，像漫画/条漫连贯故事 |
+| 干货教程/知识分享 | 单张配图 | 1张封面 + 配图，信息密集 |
+
+### 剧本式多图生成（新）
+
+- 使用 `memory/skills/剧本式多图生成.json`
+- 先写分镜剧本，再逐张生成图片
+- 每张图是独立完整画面，不是拼接
+- 最多支持18张，按剧情顺序上传
+
+### 传统配图生成
+
+- Use `memory/skills/生成小红书配图.json` for image prompts
+- Follow the style system: 9 styles × 6 layouts
+- Generate 1 cover + 1-2 illustrations per post
+- Save images to `aios/images/` folder
+- Match image style to content theme:
+  - 情感恋爱 → 粉色浪漫系
+  - 情绪管理 → 暖黄治愈系
+  - 人际关系 → 活泼明亮系
+  - 大学成长 → 清新自然系
+
+## Reference Skills
+
+- Auto-Redbook-Skills: https://github.com/comeonzhj/Auto-Redbook-Skills
+- baoyu-skills: https://github.com/jimliu/baoyu-skills
+
+## Safety Limits (from specs)
+
+- Daily posts: max 3
+- Daily interactions: max 50
+- Operation interval: random 5-30 seconds
+- Auto-pause on error detection
+
+## Anti-Detection
+
+- Always use anti-detection scripts before any browser operation
+- Enable random delays between actions (5-30 seconds)
+- Use human behavior simulation skills
+- Key files:
+  - `config/settings.json` - anti_detection config
+  - `memory/skills/反检测脚本.json` - stealth scripts
+  - `memory/skills/人类行为模拟.json` - human behavior
+  - `config/stealth-chrome-args.json` - Chrome args
+
+## Important Notes
+
+- All operations use Chrome DevTools MCP for browser automation
+- The system maintains a file-based memory system in JSON format
+- Before executing any plan, use `superpowers:brainstorming` skill
+- When implementing features, use `superpowers:test-driven-development`
+- Before claiming completion, use `superpowers:verification-before-completion`

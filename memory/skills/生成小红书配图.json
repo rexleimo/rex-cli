@@ -1,0 +1,121 @@
+{
+  "skill_name": "生成小红书配图",
+  "description": "使用即梦AI/通义万相为小红书笔记生成封面图和配图，支持多种风格",
+  "trigger_keywords": ["生成图片", "做张图", "配图", "封面图", "即梦", "AI配图", "小红书配图"],
+  "platform": "jimeng.jianying.com",
+  "primary_tool": "baoyu-xhs-images",
+  "fallback_tools": ["jimeng", "tongyi"],
+  "steps": [
+    {
+      "step": 1,
+      "action": "检查是否有baoyu-xhs-images配置",
+      "tool": "check_extend"
+    },
+    {
+      "step": 2,
+      "action": "使用baoyu-xhs-images生成小红书图文",
+      "skill": "baoyu-xhs-images",
+      "details": [
+        "支持10种视觉风格：cute(甜酷), fresh(清新), warm(温暖), bold(醒目), minimal(极简), retro(复古), pop(活力), notion(知识风), chalkboard(粉笔画), study-notes(手账)",
+        "支持8种布局：sparse(稀疏), balanced(平衡), dense(密集), list(列表), comparison(对比), flow(流程), mindmap(思维导图), quadrant(象限)",
+        "自动根据内容类型推荐风格和布局"
+      ]
+    },
+    {
+      "step": 3,
+      "action": "如果没有baoyu配置，使用即梦AI",
+      "fallback": true,
+      "url": "https://jimeng.jianying.com/ai-tool/image/generate"
+    }
+  ],
+  "style_system": {
+    "9种风格": {
+      "cute": "可爱卡通",
+      "fresh": "小清新",
+      "bold": "大胆醒目",
+      "minimal": "极简",
+      "vintage": "复古",
+      "tech": "科技感",
+      "handmade": "手工艺感",
+      "cinematic": "电影感",
+      "abstract": "抽象艺术"
+    },
+    "6种布局": {
+      "sparse": "稀疏留白",
+      "dense": "密集信息",
+      "list": "列表式",
+      "grid": "网格",
+      "center": "居中",
+      "asymmetric": "不对称"
+    }
+  },
+  "baoyu_styles": {
+    "情感恋爱": {
+      "style": "cute",
+      "layout": "balanced",
+      "reason": "甜美可爱风格最符合小红书女性用户审美"
+    },
+    "情绪管理": {
+      "style": "warm",
+      "layout": "balanced",
+      "reason": "温暖风格增强治愈感"
+    },
+    "人际关系": {
+      "style": "fresh",
+      "layout": "balanced",
+      "reason": "清新风格适合社交话题"
+    },
+    "大学成长": {
+      "style": "notion",
+      "layout": "dense",
+      "reason": "知识风适合干货内容"
+    },
+    "干货教程": {
+      "style": "notion",
+      "layout": "dense",
+      "reason": "信息密集型布局适合教程类"
+    }
+  },
+  "prompt_templates": {
+    "情感恋爱_封面": "粉色和浅紫色渐变背景，梦幻光斑效果，马卡龙配色，浪漫温馨氛围，简约可爱风格，适合社交媒体封面，无文字",
+    "情感恋爱_配图": "一对情侣卡通插画，温柔配色，甜蜜氛围，简约线条风格，粉色系背景，青春甜蜜感觉，无文字",
+    "情绪管理_封面": "暖黄和橙色渐变背景，日落时分氛围，温暖治愈，一个女孩安静看书的剪影，舒适放松风格，无文字",
+    "情绪管理_配图": "冥想放松主题，柔和渐变背景，简约插画风格，平静治愈氛围，暖色调，无文字",
+    "人际关系_封面": "两个朋友说笑的卡通场景，暖橙色背景，温馨友好氛围，活泼可爱风格，社交主题，无文字",
+    "人际关系_配图": "朋友聚会场景，彩色装饰，欢快氛围，扁平化卡通风格，现代简约配色，无文字",
+    "大学成长_封面": "书本和笔记本电脑，简约书桌风格，浅色渐变背景，学习成长主题，清新专业，无文字",
+    "大学成长_配图": "大学校园元素，书本、咖啡、笔记本，精致卡通插画，暖色调，青春校园风格，无文字",
+    "干货教程_封面": "简约现代设计，几何图形装饰，浅色专业背景，干货知识风格，清晰条理，现代简约，无文字",
+    "通用渐变_封面": "柔和渐变背景，梦幻光斑效果，简约风格，马卡龙配色，温馨治愈氛围，适合任何主题，无文字"
+  },
+  "color_palettes": {
+    "粉色浪漫系": "粉色、浅紫、淡粉、薰衣草紫",
+    "暖黄治愈系": "暖黄、橙色、杏色、日落橙",
+    "清新自然系": "薄荷绿、浅蓝、白色、淡绿",
+    "专业干练系": "深蓝、灰色、白色、藏青",
+    "活泼明亮系": "黄色、橙色、珊瑚色、亮粉"
+  },
+  "aspect_ratios": {
+    "3:4": "小红书竖版图文推荐（最佳）",
+    "1:1": "小红书方形图文",
+    "16:9": "横版视频封面",
+    "9:16": "竖版视频封面"
+  },
+  "workflow": {
+    "推荐流程": [
+      "1. 优先使用baoyu-xhs-images技能生成高质量图文",
+      "2. 根据内容主题选择合适风格(cute/fresh/warm/bold/notion等)",
+      "3. 选择合适的布局(sparse/balanced/dense/list等)",
+      "4. 生成1张封面 + 1-2张配图",
+      "5. 保存到aios/images/文件夹"
+    ]
+  },
+  "notes": [
+    "baoyu-xhs-images是首选工具，可以生成系列图文",
+    "每篇笔记至少生成2张图：1张封面+1-2张配图",
+    "即梦AI对某些词汇有限制，避免使用敏感词",
+    "图片生成后需要手动下载保存到aios/images/",
+    "推荐使用3:4比例获得最佳显示效果",
+    "不同主题使用不同配色，保持内容一致性"
+  ]
+}
