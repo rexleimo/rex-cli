@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__select_page",
+      "mcp__chrome-devtools__upload_file",
+      "WebFetch(domain:github.com)",
+      "mcp__chrome-devtools__press_key",
+      "mcp__chrome-devtools__type_text",
+      "mcp__chrome-devtools__wait_for",
+      "Bash(npx skills:*)",
+      "mcp__fetch__fetch",
+      "mcp__chrome-devtools__list_pages",
+      "Bash(test:*)",
+      "mcp__chrome-devtools__take_screenshot",
+      "Bash(open:*)",
+      "Bash(lsof:*)",
+      "Bash(python3:*)",
+      "Bash(git:*)",
+      "Bash(git/molei/codes:*)",
+      "WebFetch(domain:minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com)",
+      "Bash(npx:*)"
+    ]
+  },
+  "approvalMode": "auto",
+  "sandboxMode": "workspace-write",
+  "autoApprove": true,
+  "confirmDestructiveActions": false,
+  "mcp": {
+    "autoApprove": true
+  },
+  "mcpServers": {
+    "puppeteer-stealth": {
+      "command": "node",
+      "args": ["/Users/molei/codes/aios/mcp-server/dist/index.js"]
+    }
+  }
+}
