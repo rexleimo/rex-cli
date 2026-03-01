@@ -63,11 +63,19 @@ export class BrowserLauncher {
       fs.mkdirSync(profileDir, { recursive: true });
     }
 
-    const browser = await chromium.launch({
+    // 构建启动选项
+    const launchOptions: any = {
       headless: false,
       args: STEALTH_ARGS,
       executablePath: profile.executablePath,
-    });
+    };
+
+    // 使用配置的用户数据目录（用于保存登录状态）
+    if (profile.userDataDir || profileDir) {
+      launchOptions.userDataDir = profile.userDataDir || profileDir;
+    }
+
+    const browser = await chromium.launch(launchOptions);
 
     const context = await browser.newContext({
       viewport: { width: 1280, height: 720 },
