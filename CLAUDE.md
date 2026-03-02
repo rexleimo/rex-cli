@@ -140,6 +140,7 @@ The project now includes a **Playwright-based browser MCP** (参照 OpenClaw 架
 Multi-profile support for isolated browser instances:
 - Each profile has independent user data directory
 - Config: `config/browser-profiles.json`
+- Recommended convention: `default` = CDP fingerprint browser, `local` = Playwright local launch
 
 ### Tech Stack
 

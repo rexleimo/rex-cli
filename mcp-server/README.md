@@ -45,11 +45,12 @@ Use `config/browser-profiles.json` (project root):
   "profiles": {
     "default": {
       "name": "default",
-      "userDataDir": ".browser-profiles/default"
+      "cdpPort": 9222
     },
-    "fingerprint": {
-      "name": "fingerprint",
-      "cdpUrl": "http://127.0.0.1:9222"
+    "local": {
+      "name": "local",
+      "userDataDir": ".browser-profiles/local",
+      "executablePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     }
   }
 }
@@ -64,9 +65,10 @@ Priority for launch mode:
 
 If you see `Google Chrome for Testing 意外退出`:
 
-1. Prefer CDP mode (`cdpUrl`/`cdpPort`) to reuse your fingerprint browser.
-2. Or set `executablePath` to a stable system browser in profile config.
-3. Optionally set `BROWSER_HEADLESS=true` for non-GUI environments.
+1. Start fingerprint browser with remote debugging on `9222` and keep it running.
+2. Use `browser_launch` without profile (now defaults to CDP) or pass `{ "profile": "default" }`.
+3. If you need local Playwright launch, explicitly use `{ "profile": "local" }`.
+4. Optionally set `BROWSER_HEADLESS=true` for non-GUI environments.
 
 ## Notes
 

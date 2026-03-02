@@ -28,6 +28,9 @@ const STEALTH_ARGS = [
   '--disable-breakpad',
 ];
 
+// Playwright 默认会传 --enable-automation，容易触发“Chrome 正受到自动测试软件控制”提示条。
+const IGNORE_DEFAULT_ARGS = ['--enable-automation'];
+
 // 反检测注入脚本
 const STEALTH_SCRIPT = `
   Object.defineProperty(navigator, 'webdriver', { get: () => false });
@@ -128,6 +131,7 @@ export class BrowserLauncher {
         context = await chromium.launchPersistentContext(userDataDir, {
           headless: resolvedHeadless,
           args: STEALTH_ARGS,
+          ignoreDefaultArgs: IGNORE_DEFAULT_ARGS,
           executablePath,
           viewport: { width: 1280, height: 720 },
         });
@@ -136,6 +140,7 @@ export class BrowserLauncher {
         browser = await chromium.launch({
           headless: resolvedHeadless,
           args: STEALTH_ARGS,
+          ignoreDefaultArgs: IGNORE_DEFAULT_ARGS,
           executablePath,
         });
         context = await browser.newContext({

@@ -2,12 +2,12 @@
   "profiles": {
     "default": {
       "name": "default",
-      "userDataDir": ".browser-profiles/default",
-      "executablePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    },
-    "fingerprint": {
-      "name": "fingerprint",
       "cdpPort": 9222
+    },
+    "local": {
+      "name": "local",
+      "userDataDir": ".browser-profiles/local",
+      "executablePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     }
   }
 }

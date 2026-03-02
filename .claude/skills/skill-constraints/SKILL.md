@@ -23,6 +23,7 @@ description: Use when executing any skill or browser automation task - enforces 
 1. 优先使用 browser_snapshot 获取文本快照
    - 比截图更高效，便于 grep 搜索
    - 格式：{ profile: 'default' }
+   - 约定：`default` 应映射为 CDP 指纹浏览器；本地启动浏览器请显式用 `profile: 'local'`
 
 2. 必须截图时，保存到 temp/ 目录
    - 路径：aios/temp/{操作类型}_{时间戳}.png

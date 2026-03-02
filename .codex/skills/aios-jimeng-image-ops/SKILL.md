@@ -10,6 +10,7 @@ Use this runbook for stable image generation on Jimeng. It includes selectors, c
 
 ## Preconditions
 - Browser profile has valid Jimeng login session.
+- `default` profile should connect to fingerprint browser via CDP (port `9222` by default).
 - MCP tools available: `browser_launch`, `browser_navigate`, `browser_type`, `browser_click`, `browser_snapshot`, `browser_screenshot`.
 - Prompt is policy-safe (avoid risky terms, political/person-identifiable/sensitive wording).
 
