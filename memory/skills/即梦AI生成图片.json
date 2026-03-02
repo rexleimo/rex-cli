@@ -1,135 +1,111 @@
 {
   "skill_name": "即梦AI生成图片",
-  "description": "通过即梦AI网站自动生成图片，文生图功能。注意：每次使用需要用户先扫码登录",
-  "version": "1.0.1",
-  "trigger_keywords": ["即梦生成图片", "AI生成图片", "用即梦做图", "jimeng生成"],
+  "description": "通过即梦AI网站自动生成图片（稳定版流程）。支持政策拦截识别与一次重试，执行前需确认登录状态。",
+  "version": "1.1.0",
+  "trigger_keywords": ["即梦生成图片", "AI生成图片", "用即梦做图", "jimeng生成", "即梦出图"],
   "platform": "jimeng.jianying.com",
-  "url": "https://jimeng.jianying.com/ai-tool/home",
+  "url": "https://jimeng.jianying.com/ai-tool/generate?ai_feature_name=image",
 
-  "mcp_required": "puppeteer-stealth",
+  "mcp_required": "browser_* tools (server alias may be puppeteer-stealth)",
 
   "usage": {
-    "step1_login": "用户先在浏览器中打开即梦AI并扫码登录",
-    "step2_navigate": "使用 browser_navigate 导航到 https://jimeng.jianying.com/ai-tool/home",
-    "step3_explore": "点击'AI绘画'卡片进入文生图页面",
-    "step4_generate": "输入提示词并生成图片"
+    "step1_session": "优先使用已登录 profile（default），避免每次扫码",
+    "step2_entry": "直接进入文生图页面，避免首页卡片误点击",
+    "step3_result_check": "通过快照判断成功/失败，不只靠固定等待时间"
+  },
+
+  "selectors": {
+    "prompt_input": "textarea[placeholder*='请描述你想生成的图片']",
+    "submit_primary": "button[class*='submit-button'][class*='lv-btn-primary']:not([disabled])",
+    "submit_fallback": "button[class*='submit-button']:not([disabled])"
   },
 
   "steps": [
     {
       "step": 1,
-      "action": "用户登录",
-      "description": "提示用户在浏览器中扫码登录即梦AI",
-      "manual": true
-    },
-    {
-      "step": 2,
       "action": "启动浏览器",
       "tool": "browser_launch",
       "params": { "profile": "default" }
     },
     {
-      "step": 3,
-      "action": "导航到首页",
+      "step": 2,
+      "action": "导航到即梦文生图页面",
       "tool": "browser_navigate",
-      "params": { "url": "https://jimeng.jianying.com/ai-tool/home" }
+      "params": { "url": "https://jimeng.jianying.com/ai-tool/generate?ai_feature_name=image" }
+    },
+    {
+      "step": 3,
+      "action": "抓取快照确认页面可交互",
+      "tool": "browser_snapshot",
+      "success_signal": "快照中包含 '请描述你想生成的图片'"
     },
     {
       "step": 4,
-      "action": "等待页面加载并截图确认登录状态",
-      "tool": "browser_snapshot"
-    },
-    {
-      "step": 5,
-      "action": "点击进入AI绘画/文生图页面",
-      "description": "点击首页的'AI绘画'功能卡片",
-      "tool": "browser_click",
-      "selector": "[class*='card'], [class*='item']"
-    },
-    {
-      "step": 6,
-      "action": "等待文生图页面加载",
-      "tool": "wait",
-      "timeout": 5000
-    },
-    {
-      "step": 7,
-      "action": "点击文本框激活输入区域",
-      "tool": "browser_click",
-      "selector": "textarea, [class*='input'], [contenteditable='true']"
-    },
-    {
-      "step": 8,
       "action": "输入提示词",
       "tool": "browser_type",
-      "selector": "textarea",
+      "selector": "textarea[placeholder*='请描述你想生成的图片']",
       "params": { "text": "${prompt}" }
     },
     {
-      "step": 9,
-      "action": "选择图片风格（可选）",
+      "step": 5,
+      "action": "点击生成按钮（主选择器）",
       "tool": "browser_click",
-      "selector": "[class*='style'], [class*='model']"
+      "selector": "button[class*='submit-button'][class*='lv-btn-primary']:not([disabled])"
     },
     {
-      "step": 10,
-      "action": "选择图片比例（可选）",
+      "step": 6,
+      "action": "若主选择器失败，使用回退选择器",
       "tool": "browser_click",
-      "selector": "[class*='ratio'], [class*='size']"
+      "selector": "button[class*='submit-button']:not([disabled])",
+      "conditional": "仅在第5步失败时执行"
     },
     {
-      "step": 11,
-      "action": "点击生成按钮",
-      "tool": "browser_click",
-      "selector": "button:has-text('生成'), button.primary, [class*='generate']"
+      "step": 7,
+      "action": "轮询快照判断结果",
+      "tool": "browser_snapshot",
+      "retry": {
+        "max_rounds": 12,
+        "interval_seconds": 10
+      },
+      "success_signal": "出现新任务结果卡片 + '重新编辑'/'再次生成'",
+      "failure_signal": "出现 '你输入的文字不符合平台规则，请修改后重试'"
     },
     {
-      "step": 12,
-      "action": "等待图片生成完成",
-      "tool": "wait",
-      "timeout": 90000
-    },
-    {
-      "step": 13,
-      "action": "截图保存生成的图片",
+      "step": 8,
+      "action": "保存结果证据截图",
       "tool": "browser_screenshot",
-      "params": { "filePath": "aios/images/jimeng-${timestamp}.png" }
+      "params": { "fullPage": true },
+      "note": "该工具返回 base64，调用方需自行落盘到 aios/temp/ 或 aios/images/"
     },
     {
-      "step": 14,
-      "action": "关闭浏览器",
+      "step": 9,
+      "action": "结束后关闭浏览器",
       "tool": "browser_close"
     }
   ],
 
-  "style_presets": {
-    "写实": "写实风格，高清逼真",
-    "卡通": "卡通插画风格，可爱有趣",
-    "漫画": "漫画风格，线条分明",
-    "插画": "商业插画风格，精美细腻",
-    "唯美": "唯美梦幻风格，浪漫优雅"
+  "prompt_strategy": {
+    "safe_prompt_rules": [
+      "优先用场景/风格描述，避免敏感实体和风险话题",
+      "避免政治、暴力、成人、仇恨、违法等高风险内容",
+      "若被规则拦截，先中性化再重试一次"
+    ],
+    "rewrite_example": {
+      "blocked": "小红书封面，清新治愈风，淡粉和暖黄色渐变背景，简约留白，手写风标题区域，无文字，无人物，3:4竖图",
+      "safe": "春日花园插画风景，樱花树、草地、小路、蓝天白云，柔和阳光，高清，3:4竖版，无人物无文字"
+    }
   },
-
-  "aspect_ratios": {
-    "3:4": "竖版推荐，小红书最佳",
-    "1:1": "方形图文",
-    "16:9": "横版"
-  },
-
-  "prompt_examples": [
-    "粉色和浅紫色渐变背景，梦幻光斑效果，马卡龙配色，浪漫温馨氛围",
-    "一个女孩安静看书的剪影，暖黄和橙色渐变背景，日落时分氛围",
-    "极简现代设计，几何图形装饰，浅色专业背景"
-  ],
 
   "error_handling": {
-    "未登录": "提示用户扫码登录后继续",
-    "生成失败": "重试1次，仍失败返回错误信息",
-    "下载失败": "提示用户手动保存"
+    "未登录": "提示用户扫码登录后重试",
+    "策略拦截": "自动改写为中性提示词并重试1次",
+    "生成超时": "刷新页面后重试1次；仍失败则人工接管",
+    "选择器失败": "重新抓取快照并更新选择器"
   },
 
   "output": {
-    "directory": "aios/images/",
+    "evidence_directory": "aios/temp/",
+    "image_directory": "aios/images/",
     "filename_pattern": "jimeng-${timestamp}.png"
   },
 
@@ -140,9 +116,8 @@
   },
 
   "notes": [
-    "必须使用 puppeteer-stealth MCP",
-    "输入提示词后等待3-5秒再点击生成",
-    "生成图片需要等待30-90秒",
-    "如果遇到验证码需要用户手动处理"
+    "2026-03-02实测：存在一次策略拦截和一次成功生成",
+    "不要依赖固定 wait，优先快照轮询",
+    "提交按钮可能是无文字图标按钮，文本选择器不稳定"
   ]
 }

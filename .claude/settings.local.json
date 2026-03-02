@@ -34,7 +34,8 @@
       "mcp__puppeteer-stealth__browser_click",
       "mcp__puppeteer-stealth__browser_type",
       "mcp__puppeteer-stealth__browser_close",
-      "mcp__puppeteer-stealth__browser_list_tabs"
+      "mcp__puppeteer-stealth__browser_list_tabs",
+      "mcp__chrome-devtools__close_page"
     ]
   },
   "approvalMode": "auto",
@@ -47,7 +48,9 @@
   "mcpServers": {
     "puppeteer-stealth": {
       "command": "node",
-      "args": ["/Users/molei/codes/aios/mcp-server/dist/index.js"]
+      "args": [
+        "/Users/molei/codes/aios/mcp-server/dist/index.js"
+      ]
     }
   }
 }
