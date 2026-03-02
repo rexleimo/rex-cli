@@ -1,6 +1,5 @@
 // mcp-server/src/browser/launcher.ts
 import { chromium, type Browser, type BrowserContext } from 'playwright';
-import * as path from 'path';
 import * as fs from 'fs';
 import type { BrowserProfile, ProfileState } from './types.js';
 import { profileManager } from './profiles.js';
@@ -25,6 +24,8 @@ const STEALTH_ARGS = [
   '--mute-audio',
   '--no-first-run',
   '--safebrowsing-disable-auto-update',
+  '--disable-crash-reporter',
+  '--disable-breakpad',
 ];
 
 // 反检测注入脚本
@@ -35,9 +36,43 @@ const STEALTH_SCRIPT = `
   window.chrome = { runtime: {} };
 `;
 
+function parseHeadlessEnv(value: string | undefined): boolean | undefined {
+  if (!value) return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+  return undefined;
+}
+
+function resolveExecutablePath(profile: BrowserProfile): string | undefined {
+  if (profile.executablePath) return profile.executablePath;
+  if (process.env.BROWSER_EXECUTABLE_PATH) return process.env.BROWSER_EXECUTABLE_PATH;
+
+  if (process.platform === 'darwin') {
+    const macCandidates = [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    ];
+    for (const candidate of macCandidates) {
+      if (fs.existsSync(candidate)) return candidate;
+    }
+  }
+
+  return undefined;
+}
+
 export class BrowserLauncher {
   private state: Map<string, ProfileState> = new Map();
   private _pageIdCounter = 0;
+  private profileInitPromise: Promise<void> | null = null;
+
+  private async ensureProfilesLoaded(): Promise<void> {
+    if (!this.profileInitPromise) {
+      this.profileInitPromise = profileManager.init();
+    }
+    await this.profileInitPromise;
+  }
 
   get pageIdCounter(): number {
     return this._pageIdCounter;
@@ -47,7 +82,9 @@ export class BrowserLauncher {
     this._pageIdCounter = value;
   }
 
-  async launch(profileName: string = 'default', url?: string): Promise<ProfileState> {
+  async launch(profileName: string = 'default', url?: string, headless?: boolean): Promise<ProfileState> {
+    await this.ensureProfilesLoaded();
+
     if (this.state.has(profileName)) {
       const existing = this.state.get(profileName)!;
       if (existing.browser?.isConnected()) {
@@ -64,30 +101,60 @@ export class BrowserLauncher {
     }
 
     // 使用配置的用户数据目录（用于保存登录状态）
-    const userDataDir = profile.userDataDir || profileDir;
+    const userDataDir = profile.userDataDir
+      ? profileManager.resolveWorkspacePath(profile.userDataDir)
+      : profileDir;
 
-    // 构建启动选项
-    const launchOptions: any = {
-      headless: false,
-      args: STEALTH_ARGS,
-      executablePath: profile.executablePath,
-    };
+    const envHeadless = parseHeadlessEnv(process.env.BROWSER_HEADLESS);
+    const resolvedHeadless = headless ?? profile.headless ?? envHeadless ?? false;
+    const executablePath = resolveExecutablePath(profile);
+    const cdpEndpoint = profile.cdpUrl || (profile.cdpPort ? `http://127.0.0.1:${profile.cdpPort}` : undefined);
 
     let browser: Browser;
     let context: BrowserContext;
+    let connectedOverCdp = false;
 
-    // 使用 launchPersistentContext 来支持 userDataDir（持久化登录状态）
-    if (userDataDir) {
-      context = await chromium.launchPersistentContext(userDataDir, {
-        ...launchOptions,
-        viewport: { width: 1280, height: 720 },
-      });
-      browser = context.browser()!;
-    } else {
-      browser = await chromium.launch(launchOptions);
-      context = await browser.newContext({
-        viewport: { width: 1280, height: 720 },
-      });
+    try {
+      // 优先支持指纹浏览器/CDP 接入，避免本地启动 Chrome for Testing 崩溃。
+      if (cdpEndpoint) {
+        browser = await chromium.connectOverCDP(cdpEndpoint);
+        connectedOverCdp = true;
+        const contexts = browser.contexts();
+        context = contexts.length > 0
+          ? contexts[0]
+          : await browser.newContext({ viewport: { width: 1280, height: 720 } });
+      } else if (userDataDir) {
+        // 使用 launchPersistentContext 来支持 userDataDir（持久化登录状态）
+        context = await chromium.launchPersistentContext(userDataDir, {
+          headless: resolvedHeadless,
+          args: STEALTH_ARGS,
+          executablePath,
+          viewport: { width: 1280, height: 720 },
+        });
+        browser = context.browser()!;
+      } else {
+        browser = await chromium.launch({
+          headless: resolvedHeadless,
+          args: STEALTH_ARGS,
+          executablePath,
+        });
+        context = await browser.newContext({
+          viewport: { width: 1280, height: 720 },
+        });
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      const tips = [
+        `profile=${profileName}`,
+        cdpEndpoint ? `cdp=${cdpEndpoint}` : 'cdp=disabled',
+        `headless=${String(resolvedHeadless)}`,
+        executablePath ? `executablePath=${executablePath}` : 'executablePath=playwright-default',
+      ].join(', ');
+      throw new Error(
+        `Browser launch failed (${tips}). ${reason}\n` +
+        `建议：在 config/browser-profiles.json 为该 profile 配置 cdpUrl/cdpPort（连接指纹浏览器）` +
+        `或 executablePath（系统浏览器路径）。`
+      );
     }
 
     // 注入反检测脚本
@@ -98,6 +165,7 @@ export class BrowserLauncher {
       context,
       pages: new Map(),
       activePageId: null,
+      connectedOverCdp,
     };
 
     this.state.set(profileName, state);
@@ -128,11 +196,16 @@ export class BrowserLauncher {
     const state = this.state.get(profileName);
     if (!state) return;
 
-    if (state.context) {
-      await state.context.close();
-    }
-    if (state.browser) {
-      await state.browser.close();
+    if (state.connectedOverCdp) {
+      // CDP 模式下 close() 只断开连接，不关闭外部浏览器进程。
+      await state.browser?.close();
+    } else {
+      if (state.context) {
+        await state.context.close();
+      }
+      if (state.browser) {
+        await state.browser.close();
+      }
     }
 
     this.state.delete(profileName);

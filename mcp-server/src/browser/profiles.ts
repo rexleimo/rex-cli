@@ -1,9 +1,31 @@
 // mcp-server/src/browser/profiles.ts
 import { promises as fs } from 'fs';
+import { existsSync } from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import type { BrowserProfile } from './types.js';
 
-const PROFILES_DIR = path.join(process.cwd(), '.browser-profiles');
+function resolveWorkspaceRoot(): string {
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    process.cwd(),
+    path.resolve(process.cwd(), '..'),
+    path.resolve(moduleDir, '..', '..'), // mcp-server/
+    path.resolve(moduleDir, '..', '..', '..'), // aios/
+  ];
+
+  for (const root of candidates) {
+    if (existsSync(path.join(root, 'config', 'browser-profiles.json'))) {
+      return root;
+    }
+  }
+
+  return process.cwd();
+}
+
+const WORKSPACE_ROOT = resolveWorkspaceRoot();
+const PROFILES_DIR = path.join(WORKSPACE_ROOT, '.browser-profiles');
+const CONFIG_PATH = path.join(WORKSPACE_ROOT, 'config', 'browser-profiles.json');
 
 export class ProfileManager {
   private profiles: Map<string, BrowserProfile> = new Map();
@@ -18,9 +40,8 @@ export class ProfileManager {
   }
 
   private async loadProfiles(): Promise<void> {
-    const configPath = path.join(process.cwd(), 'config', 'browser-profiles.json');
     try {
-      const data = await fs.readFile(configPath, 'utf-8');
+      const data = await fs.readFile(CONFIG_PATH, 'utf-8');
       const config = JSON.parse(data);
       if (config.profiles) {
         for (const [name, profile] of Object.entries(config.profiles)) {
@@ -46,6 +67,15 @@ export class ProfileManager {
 
   getProfileDir(name: string): string {
     return path.join(PROFILES_DIR, name);
+  }
+
+  getWorkspaceRoot(): string {
+    return WORKSPACE_ROOT;
+  }
+
+  resolveWorkspacePath(targetPath: string): string {
+    if (path.isAbsolute(targetPath)) return targetPath;
+    return path.resolve(WORKSPACE_ROOT, targetPath);
   }
 }
 

@@ -8,6 +8,7 @@ export interface BrowserProfile {
   color?: string;
   executablePath?: string;
   userDataDir?: string;
+  headless?: boolean;
 }
 
 export interface ProfileState {
@@ -15,6 +16,7 @@ export interface ProfileState {
   context: BrowserContext | null;
   pages: Map<number, Page>;
   activePageId: number | null;
+  connectedOverCdp?: boolean;
 }
 
 export interface BrowserState {

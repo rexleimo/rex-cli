@@ -27,6 +27,7 @@ export const tools = [
       properties: {
         profile: { type: 'string', default: 'default' },
         url: { type: 'string' },
+        headless: { type: 'boolean' },
       },
     },
   },
@@ -38,6 +39,7 @@ export const tools = [
       properties: {
         url: { type: 'string' },
         profile: { type: 'string', default: 'default' },
+        newTab: { type: 'boolean', default: false },
       },
     },
   },
@@ -83,6 +85,7 @@ export const tools = [
       properties: {
         fullPage: { type: 'boolean', default: false },
         profile: { type: 'string', default: 'default' },
+        filePath: { type: 'string' },
       },
     },
   },

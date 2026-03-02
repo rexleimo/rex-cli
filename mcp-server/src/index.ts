@@ -53,41 +53,52 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 // 工具处理器映射
 const toolHandlers: Record<string, (args: any) => Promise<any>> = {
   browser_launch: async (args) => {
-    const { profile = 'default', url } = args;
-    const state = await browserLauncher.launch(profile, url);
+    const { profile = 'default', url, headless } = args ?? {};
+    await browserLauncher.launch(profile, url, headless);
     return { success: true, profile };
   },
   browser_navigate: async (args) => {
-    return await navigate(args.url, args.profile);
+    const { url, profile, newTab } = args ?? {};
+    if (!url) throw new Error('browser_navigate requires url');
+    return await navigate(url, profile, newTab);
   },
   browser_click: async (args) => {
-    return await click(args.selector, args.profile, args.double);
+    const { selector, profile, double } = args ?? {};
+    if (!selector) throw new Error('browser_click requires selector');
+    return await click(selector, profile, double);
   },
   browser_type: async (args) => {
-    return await type(args.selector, args.text, args.profile);
+    const { selector, text, profile } = args ?? {};
+    if (!selector) throw new Error('browser_type requires selector');
+    if (typeof text !== 'string') throw new Error('browser_type requires text');
+    return await type(selector, text, profile);
   },
   browser_snapshot: async (args) => {
-    return await snapshot(args.profile);
+    return await snapshot(args?.profile);
   },
   browser_screenshot: async (args) => {
-    return await screenshot(args.fullPage, args.profile);
+    const { fullPage, profile, filePath } = args ?? {};
+    return await screenshot(fullPage, profile, filePath);
   },
   browser_close: async (args) => {
-    const profile = args.profile || 'default';
+    const profile = args?.profile || 'default';
     await browserLauncher.close(profile);
     return { success: true, profile };
   },
   browser_list_tabs: async (args) => {
-    const state = browserLauncher.getState(args.profile || 'default');
+    const profile = args?.profile || 'default';
+    const state = browserLauncher.getState(profile);
     if (!state) {
-      return { tabs: [], profile: args.profile || 'default' };
+      return { tabs: [], profile };
     }
-    const tabs = Array.from(state.pages.entries()).map(([id, page]) => ({
-      id,
-      url: page.url(),
-      title: page.title(),
-    }));
-    return { tabs, profile: args.profile || 'default' };
+    const tabs = await Promise.all(
+      Array.from(state.pages.entries()).map(async ([id, page]) => ({
+        id,
+        url: page.url(),
+        title: await page.title(),
+      }))
+    );
+    return { tabs, profile };
   },
 };
 

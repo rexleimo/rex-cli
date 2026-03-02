@@ -1,75 +1,74 @@
-# Puppeteer Stealth MCP Server
+# Playwright Browser MCP Server
 
-反检测浏览器自动化 MCP 服务器，使用 puppeteer-extra + stealth 插件。
+`mcp-server` currently exposes a Playwright-based `browser_*` toolset (not `stealth_*`).
 
-## 快速开始
-
-### 1. 安装依赖
+## Quick Start
 
 ```bash
 cd mcp-server
 npm install
-```
-
-### 2. 编译 TypeScript
-
-```bash
 npm run build
 ```
 
-### 3. 配置 Claude Code
-
-在 `.claude/settings.local.json` 中添加：
+Configure Claude Code:
 
 ```json
 {
   "mcpServers": {
     "puppeteer-stealth": {
       "command": "node",
-      "args": ["/path/to/mcp-server/dist/index.js"]
+      "args": ["/Users/you/path/to/aios/mcp-server/dist/index.js"]
     }
   }
 }
 ```
 
-### 4. 重启 Claude Code
+Then restart Claude Code.
 
-重启后即可使用以下工具：
+## Available Tools
 
-| 工具 | 功能 |
-|------|------|
-| `stealth_navigate` | 打开 URL |
-| `stealth_click` | 点击元素 |
-| `stealth_fill` | 填写输入框 |
-| `stealth_type` | 打字输入 |
-| `stealth_screenshot` | 截图 |
-| `stealth_snapshot` | 获取页面快照 |
-| `stealth_evaluate` | 执行 JS |
-| `stealth_wait_for` | 等待元素 |
-| `stealth_scroll` | 滚动页面 |
-| `stealth_mouse_move` | 鼠标移动 |
-| `stealth_new_tab` | 新建标签页 |
-| `stealth_switch_tab` | 切换标签页 |
-| `stealth_close_tab` | 关闭标签页 |
-| `stealth_list_tabs` | 列出标签页 |
-| `stealth_close_browser` | 关闭浏览器 |
+- `browser_launch` `{ profile?, url?, headless? }`
+- `browser_navigate` `{ url, profile?, newTab? }`
+- `browser_click` `{ selector, profile?, double? }`
+- `browser_type` `{ selector, text, profile? }`
+- `browser_snapshot` `{ profile? }`
+- `browser_screenshot` `{ fullPage?, profile?, filePath? }`
+- `browser_list_tabs` `{ profile? }`
+- `browser_close` `{ profile? }`
 
-## 反检测特性
+## Profile Config
 
-- `puppeteer-extra-plugin-stealth` 自动隐藏 WebDriver 特征
-- `ghost-cursor` 模拟人类鼠标行为
-- 随机延迟（1-3秒）模拟人类操作节奏
-- 平滑滚动模拟人类浏览行为
+Use `config/browser-profiles.json` (project root):
 
-## 开发
-
-```bash
-# 开发模式（热重载）
-npm run dev
-
-# 类型检查
-npm run typecheck
-
-# 构建
-npm run build
+```json
+{
+  "profiles": {
+    "default": {
+      "name": "default",
+      "userDataDir": ".browser-profiles/default"
+    },
+    "fingerprint": {
+      "name": "fingerprint",
+      "cdpUrl": "http://127.0.0.1:9222"
+    }
+  }
+}
 ```
+
+Priority for launch mode:
+1. `cdpUrl` / `cdpPort` (connect existing browser/fingerprint browser)
+2. local launch with `executablePath` (profile or `BROWSER_EXECUTABLE_PATH`)
+3. Playwright default browser executable
+
+## Crash Troubleshooting (Google Chrome for Testing)
+
+If you see `Google Chrome for Testing 意外退出`:
+
+1. Prefer CDP mode (`cdpUrl`/`cdpPort`) to reuse your fingerprint browser.
+2. Or set `executablePath` to a stable system browser in profile config.
+3. Optionally set `BROWSER_HEADLESS=true` for non-GUI environments.
+
+## Notes
+
+- The server auto-detects workspace root by locating `config/browser-profiles.json`.
+- `browser_screenshot` returns base64 and can also save to disk via `filePath`.

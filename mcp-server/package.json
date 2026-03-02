@@ -1,24 +1,19 @@
 {
-  "name": "puppeteer-stealth-mcp",
+  "name": "playwright-browser-mcp",
   "version": "1.0.0",
   "type": "module",
-  "description": "Puppeteer Stealth MCP Server for anti-detection browser automation",
+  "description": "Playwright MCP server for browser automation with profile and CDP support",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "ghost-cursor": "^1.4.2",
     "playwright": "^1.58.2",
-    "playwright-core": "^1.58.2",
-    "puppeteer": "^22.0.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "zod": "^3.22.0"
+    "playwright-core": "^1.58.2"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
