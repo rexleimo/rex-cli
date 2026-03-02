@@ -24,6 +24,7 @@ description: Use when executing any skill or browser automation task - enforces 
    - 比截图更高效，便于 grep 搜索
    - 格式：{ profile: 'default' }
    - 约定：`default` 应映射为 CDP 指纹浏览器；本地启动浏览器请显式用 `profile: 'local'`
+   - 不使用 `chrome-devtools` 工具链执行业务流程，统一走 `puppeteer-stealth` 的 `browser_*` 工具
 
 2. 必须截图时，保存到 temp/ 目录
    - 路径：aios/temp/{操作类型}_{时间戳}.png
@@ -47,6 +48,7 @@ sleep $((RANDOM % 26 + 5))
 | 跳过反检测脚本 | 每次操作前必须执行 |
 | 忽略操作间隔 | 必须随机 5-30 秒 |
 | 在非 temp 目录保存截图 | 必须保存到 aios/temp/ |
+| 自动化执行第三方平台登录 | 登录必须人工完成（含 2FA） |
 
 ### 必需行为
 
@@ -56,6 +58,7 @@ sleep $((RANDOM % 26 + 5))
 | 截图保存到 temp/ | 路径固定为 aios/temp/ |
 | 使用 grep 搜索快照 | 而非目视查看截图 |
 | 记录到历史 | 关键操作写入 memory/history/ |
+| 登录态检测 | `browser_auth_check` 返回 `requiresHumanAction=true` 时先提示用户协作登录 |
 
 ### MCP 工具优先级
 

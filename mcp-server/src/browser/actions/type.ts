@@ -1,5 +1,6 @@
 // mcp-server/src/browser/actions/type.ts
 import { browserLauncher } from '../launcher.js';
+import { applyActionPacing } from '../pacing.js';
 
 export async function type(selector: string, text: string, profile: string = 'default') {
   const state = browserLauncher.getState(profile);
@@ -12,6 +13,7 @@ export async function type(selector: string, text: string, profile: string = 'de
     throw new Error('Page not found');
   }
 
+  const pacingDelayMs = await applyActionPacing();
   await page.fill(selector, text);
 
   return {
@@ -19,5 +21,6 @@ export async function type(selector: string, text: string, profile: string = 'de
     selector,
     textLength: text.length,
     profile,
+    pacingDelayMs,
   };
 }

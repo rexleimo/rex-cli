@@ -1,23 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "mcp__chrome-devtools__new_page",
-      "mcp__chrome-devtools__take_snapshot",
-      "mcp__chrome-devtools__click",
-      "mcp__chrome-devtools__navigate_page",
-      "mcp__chrome-devtools__fill",
-      "mcp__chrome-devtools__evaluate_script",
-      "mcp__chrome-devtools__select_page",
-      "mcp__chrome-devtools__upload_file",
       "WebFetch(domain:github.com)",
-      "mcp__chrome-devtools__press_key",
-      "mcp__chrome-devtools__type_text",
-      "mcp__chrome-devtools__wait_for",
       "Bash(npx skills:*)",
       "mcp__fetch__fetch",
-      "mcp__chrome-devtools__list_pages",
       "Bash(test:*)",
-      "mcp__chrome-devtools__take_screenshot",
       "Bash(open:*)",
       "Bash(lsof:*)",
       "Bash(python3:*)",
@@ -29,13 +16,13 @@
       "Bash(npm:*)",
       "mcp__puppeteer-stealth__browser_launch",
       "mcp__puppeteer-stealth__browser_navigate",
+      "mcp__puppeteer-stealth__browser_auth_check",
       "mcp__puppeteer-stealth__browser_snapshot",
       "mcp__puppeteer-stealth__browser_screenshot",
       "mcp__puppeteer-stealth__browser_click",
       "mcp__puppeteer-stealth__browser_type",
       "mcp__puppeteer-stealth__browser_close",
-      "mcp__puppeteer-stealth__browser_list_tabs",
-      "mcp__chrome-devtools__close_page"
+      "mcp__puppeteer-stealth__browser_list_tabs"
     ]
   },
   "approvalMode": "auto",

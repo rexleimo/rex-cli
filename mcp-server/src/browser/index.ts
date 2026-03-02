@@ -6,6 +6,7 @@ import { click } from './actions/click.js';
 import { type } from './actions/type.js';
 import { snapshot } from './actions/snapshot.js';
 import { screenshot } from './actions/screenshot.js';
+import { authCheck } from './actions/auth-check.js';
 
 export {
   profileManager,
@@ -15,6 +16,7 @@ export {
   type,
   snapshot,
   screenshot,
+  authCheck,
 };
 
 // MCP 工具定义
@@ -70,6 +72,16 @@ export const tools = [
   {
     name: 'browser_snapshot',
     description: 'Get page snapshot',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        profile: { type: 'string', default: 'default' },
+      },
+    },
+  },
+  {
+    name: 'browser_auth_check',
+    description: 'Check whether current page likely requires manual login',
     inputSchema: {
       type: 'object',
       properties: {

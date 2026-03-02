@@ -32,6 +32,7 @@ Then restart Claude Code.
 - `browser_click` `{ selector, profile?, double? }`
 - `browser_type` `{ selector, text, profile? }`
 - `browser_snapshot` `{ profile? }`
+- `browser_auth_check` `{ profile? }`
 - `browser_screenshot` `{ fullPage?, profile?, filePath? }`
 - `browser_list_tabs` `{ profile? }`
 - `browser_close` `{ profile? }`
@@ -74,3 +75,14 @@ If you see `Google Chrome for Testing 意外退出`:
 
 - The server auto-detects workspace root by locating `config/browser-profiles.json`.
 - `browser_screenshot` returns base64 and can also save to disk via `filePath`.
+- `browser_navigate` / `browser_snapshot` / `browser_auth_check` include `requiresHumanAction` and `auth` fields.
+- If `requiresHumanAction=true`, complete login manually and then continue automation.
+- Recommended policy: keep third-party account sign-in (Google/Meta/Jimeng auth walls) as human-in-the-loop.
+
+## Action Pacing (Reliability)
+
+Use optional pacing to reduce flaky fast-action races:
+
+- `BROWSER_ACTION_PACING=true|false` (default: `true`)
+- `BROWSER_ACTION_MIN_MS` (default: `400`)
+- `BROWSER_ACTION_MAX_MS` (default: `1200`)

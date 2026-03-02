@@ -35,32 +35,38 @@
     },
     {
       "step": 3,
+      "action": "检查是否需要人工登录协作",
+      "tool": "browser_auth_check",
+      "success_signal": "requiresHumanAction=false 或提示用户先登录后继续"
+    },
+    {
+      "step": 4,
       "action": "抓取快照确认页面可交互",
       "tool": "browser_snapshot",
       "success_signal": "快照中包含 '请描述你想生成的图片'"
     },
     {
-      "step": 4,
+      "step": 5,
       "action": "输入提示词",
       "tool": "browser_type",
       "selector": "textarea[placeholder*='请描述你想生成的图片']",
       "params": { "text": "${prompt}" }
     },
     {
-      "step": 5,
+      "step": 6,
       "action": "点击生成按钮（主选择器）",
       "tool": "browser_click",
       "selector": "button[class*='submit-button'][class*='lv-btn-primary']:not([disabled])"
     },
     {
-      "step": 6,
+      "step": 7,
       "action": "若主选择器失败，使用回退选择器",
       "tool": "browser_click",
       "selector": "button[class*='submit-button']:not([disabled])",
-      "conditional": "仅在第5步失败时执行"
+      "conditional": "仅在第6步失败时执行"
     },
     {
-      "step": 7,
+      "step": 8,
       "action": "轮询快照判断结果",
       "tool": "browser_snapshot",
       "retry": {
@@ -71,14 +77,14 @@
       "failure_signal": "出现 '你输入的文字不符合平台规则，请修改后重试'"
     },
     {
-      "step": 8,
+      "step": 9,
       "action": "保存结果证据截图",
       "tool": "browser_screenshot",
       "params": { "fullPage": true },
       "note": "该工具返回 base64，调用方需自行落盘到 aios/temp/ 或 aios/images/"
     },
     {
-      "step": 9,
+      "step": 10,
       "action": "结束后关闭浏览器",
       "tool": "browser_close"
     }

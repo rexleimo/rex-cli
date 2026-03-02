@@ -131,6 +131,7 @@ The project now includes a **Playwright-based browser MCP** (参照 OpenClaw 架
 | `browser_click` | Click element |
 | `browser_type` | Type text into element |
 | `browser_snapshot` | Get page snapshot |
+| `browser_auth_check` | Detect login/session gate and human handoff |
 | `browser_screenshot` | Take screenshot |
 | `browser_close` | Close browser |
 | `browser_list_tabs` | List all tabs |
@@ -141,6 +142,7 @@ Multi-profile support for isolated browser instances:
 - Each profile has independent user data directory
 - Config: `config/browser-profiles.json`
 - Recommended convention: `default` = CDP fingerprint browser, `local` = Playwright local launch
+- Login pages (Google/Meta/Jimeng auth walls) require human completion; automation should resume after login
 
 ### Tech Stack
 

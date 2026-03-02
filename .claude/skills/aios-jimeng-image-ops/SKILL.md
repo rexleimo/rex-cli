@@ -11,19 +11,20 @@ Use this runbook for stable image generation on Jimeng. It includes selectors, c
 ## Preconditions
 - Browser profile has valid Jimeng login session.
 - `default` profile should connect to fingerprint browser via CDP (port `9222` by default).
-- MCP tools available: `browser_launch`, `browser_navigate`, `browser_type`, `browser_click`, `browser_snapshot`, `browser_screenshot`.
+- MCP tools available: `browser_launch`, `browser_navigate`, `browser_auth_check`, `browser_type`, `browser_click`, `browser_snapshot`, `browser_screenshot`.
 - Prompt is policy-safe (avoid risky terms, political/person-identifiable/sensitive wording).
 
 ## Execution Flow
 1. Open generation page directly:
    - `https://jimeng.jianying.com/ai-tool/generate?ai_feature_name=image`
-2. Confirm prompt box exists:
+2. Run `browser_auth_check`; if `requiresHumanAction=true`, ask user to complete login and resume.
+3. Confirm prompt box exists:
    - `textarea[placeholder*='请描述你想生成的图片']`
-3. Fill prompt in visible textarea.
-4. Click submit button with selector strategy:
+4. Fill prompt in visible textarea.
+5. Click submit button with selector strategy:
    - Primary: `button[class*='submit-button'][class*='lv-btn-primary']:not([disabled])`
    - Fallback: `button[class*='submit-button']:not([disabled])`
-5. Poll snapshots until one result class appears:
+6. Poll snapshots until one result class appears:
    - Success markers: latest task has image tiles + `重新编辑` and `再次生成`
    - Policy failure marker: `你输入的文字不符合平台规则，请修改后重试`
    - Timeout marker: still `生成中` after budget

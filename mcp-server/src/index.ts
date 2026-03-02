@@ -5,7 +5,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { tools as playwrightTools, browserLauncher, navigate, click, type, snapshot, screenshot } from './browser/index.js';
+import { tools as playwrightTools, browserLauncher, navigate, click, type, snapshot, screenshot, authCheck } from './browser/index.js';
 
 const server = new Server(
   {
@@ -75,6 +75,9 @@ const toolHandlers: Record<string, (args: any) => Promise<any>> = {
   },
   browser_snapshot: async (args) => {
     return await snapshot(args?.profile);
+  },
+  browser_auth_check: async (args) => {
+    return await authCheck(args?.profile);
   },
   browser_screenshot: async (args) => {
     const { fullPage, profile, filePath } = args ?? {};

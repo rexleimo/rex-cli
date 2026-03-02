@@ -1,5 +1,6 @@
 // mcp-server/src/browser/actions/click.ts
 import { browserLauncher } from '../launcher.js';
+import { applyActionPacing } from '../pacing.js';
 
 export async function click(selector: string, profile: string = 'default', double: boolean = false) {
   const state = browserLauncher.getState(profile);
@@ -12,6 +13,7 @@ export async function click(selector: string, profile: string = 'default', doubl
     throw new Error('Page not found');
   }
 
+  const pacingDelayMs = await applyActionPacing();
   await page.click(selector, { clickCount: double ? 2 : 1 });
 
   return {
@@ -19,5 +21,6 @@ export async function click(selector: string, profile: string = 'default', doubl
     selector,
     action: double ? 'double-click' : 'click',
     profile,
+    pacingDelayMs,
   };
 }

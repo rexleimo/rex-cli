@@ -1,5 +1,7 @@
 // mcp-server/src/browser/actions/navigate.ts
 import { browserLauncher } from '../launcher.js';
+import { detectAuthRequired } from '../auth.js';
+import { applyActionPacing } from '../pacing.js';
 
 export async function navigate(url: string, profile: string = 'default', newTab: boolean = false) {
   const state = browserLauncher.getState(profile);
@@ -21,7 +23,9 @@ export async function navigate(url: string, profile: string = 'default', newTab:
     state.activePageId = pageId;
   }
 
+  const pacingDelayMs = await applyActionPacing();
   await page.goto(url, { waitUntil: 'networkidle' });
+  const auth = await detectAuthRequired(page);
 
   return {
     success: true,
@@ -29,5 +33,8 @@ export async function navigate(url: string, profile: string = 'default', newTab:
     title: await page.title(),
     pageId,
     profile,
+    pacingDelayMs,
+    auth,
+    requiresHumanAction: auth.requiresHumanLogin,
   };
 }
