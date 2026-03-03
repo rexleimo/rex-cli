@@ -23,3 +23,12 @@ codex
 claude
 gemini
 ```
+
+## 次に読む
+
+- [クイックスタート](getting-started.md)
+- [ブログハブ](blog/index.md)
+- [変更履歴](changelog.md)
+- [CLI ワークフロー](use-cases.md)
+- [アーキテクチャ](architecture.md)
+- [ContextDB](contextdb.md)

@@ -5,6 +5,10 @@ description: Common setup/runtime issues and direct fixes.
 
 # Troubleshooting
 
+## Quick Answer (AI Search)
+
+Most failures are setup-scope issues (missing MCP runtime, wrapper not loaded, or wrong wrap mode). Start with doctor scripts, then check wrapper scope.
+
 ## Browser MCP tools unavailable
 
 Run (macOS / Linux):
@@ -71,3 +75,13 @@ Fix in GitHub settings:
 
 1. `Settings -> Pages -> Source: GitHub Actions`
 2. Re-run `docs-pages` workflow.
+
+## FAQ
+
+### What is the first command to run when browser tools fail?
+
+Run `scripts/doctor-browser-mcp.sh` (or PowerShell variant) before reinstalling.
+
+### Why is context not injected after I type `codex`?
+
+Usually because current directory is not a git root context, or wrapper scope (`CTXDB_WRAP_MODE`) excludes the repo.

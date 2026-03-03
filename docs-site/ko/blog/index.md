@@ -13,6 +13,10 @@ description: RexAI CLI 생태계를 위한 성장/엔지니어링 아티클.
 - [CLI 비교](cli-comparison-post.md)
 - [자동화 플레이북](automation-playbook-post.md)
 
+## 릴리스 추적
+
+- [변경 로그](../changelog.md)
+
 ## 링크 규칙
 
 각 글에는 다음을 포함합니다.

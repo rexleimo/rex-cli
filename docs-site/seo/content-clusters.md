@@ -18,6 +18,12 @@
 - Supporting pages: posting policy, templates, distribution runbook
 - CTA: `https://tool.rexai.top`
 
+## Cluster D: AI Search / GEO
+
+- Pillar: AI-search-first documentation for CLI agent adoption
+- Supporting pages: changelog, quick start, keyword update posts
+- CTA: `https://cli.rexai.top`
+
 ## Internal Linking Rule
 
 Each new article should link:

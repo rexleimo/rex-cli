@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-03-03
+
+- docs: improve functional page SEO/GEO with AI-search answers and changelog nav
+
 ## [0.4.2] - 2026-03-03
 
 - docs: merge windows guide into quick start with os tabs

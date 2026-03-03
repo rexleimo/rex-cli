@@ -5,6 +5,10 @@ description: Practical usage patterns for interactive and one-shot agent executi
 
 # CLI Workflows
 
+## Quick Answer (AI Search)
+
+Use interactive mode for daily coding with automatic resume, and one-shot mode for deterministic full-loop execution (`init -> session -> event -> checkpoint -> pack`).
+
 ## Mode A: Interactive Resume (default)
 
 Use native commands. Wrapper auto-runs:
@@ -50,3 +54,13 @@ codex mcp
 claude doctor
 gemini extensions
 ```
+
+## FAQ
+
+### When should I use one-shot mode?
+
+Use one-shot when you need auditable, stage-complete execution in a single command.
+
+### Can I switch between CLIs in one task?
+
+Yes. The shared project ContextDB enables cross-CLI handoff without losing task state.

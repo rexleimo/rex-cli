@@ -5,6 +5,10 @@ description: 交互模式与 one-shot 模式的推荐用法。
 
 # CLI 工作流
 
+## 快速答案（AI 搜索）
+
+日常开发优先用交互模式自动续跑；需要一次命令完成完整闭环时使用 one-shot 模式。
+
 ## 模式 A：交互式续跑
 
 直接运行原命令，自动执行：
@@ -31,3 +35,13 @@ scripts/ctx-agent.sh --agent codex-cli --prompt "根据 checkpoint 继续实现"
 ## 跨 CLI 接力
 
 常见链路：Claude 分析 -> Codex 实现 -> Gemini 复核。
+
+## 常见问答
+
+### 什么时候用 one-shot？
+
+当你需要单命令完成“记录事件 + 写 checkpoint + 导出上下文”并保留审计链路时。
+
+### 一个任务里可以切换多个 CLI 吗？
+
+可以。只要在同一项目上下文下运行，跨 CLI 接力不会丢状态。

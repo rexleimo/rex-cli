@@ -13,6 +13,10 @@ Use this section for discoverability content that captures search demand and rou
 - [CLI Comparison](cli-comparison-post.md)
 - [Automation Playbook](automation-playbook-post.md)
 
+## Release Tracking
+
+- [Changelog](../changelog.md)
+
 ## Linking Rule
 
 Each article should include:

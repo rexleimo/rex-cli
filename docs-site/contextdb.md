@@ -5,6 +5,10 @@ description: Session model, five runtime steps, and command references.
 
 # ContextDB Runtime
 
+## Quick Answer (AI Search)
+
+ContextDB is a filesystem session layer for multi-CLI agent workflows. It stores events, checkpoints, and resumable context packets per project.
+
 ## Canonical 5 Steps
 
 At runtime, ContextDB can execute this sequence:
@@ -38,3 +42,17 @@ Session ids use this style:
 `<agent>-<YYYYMMDDTHHMMSS>-<random>`
 
 This keeps chronology obvious and avoids collisions.
+
+## FAQ
+
+### Is ContextDB a cloud database?
+
+No. It uses local filesystem storage under the workspace.
+
+### Do Codex, Claude, and Gemini share the same context?
+
+Yes. If they run inside the same git root, they use the same `memory/context-db/`.
+
+### How do I hand off tasks across CLIs?
+
+Keep one shared workspace session and use `context:pack` before the next CLI run.

@@ -57,6 +57,8 @@ plugins:
           nav_translations:
             Overview: 概览
             Quick Start: 快速开始
+            Blog: 博客
+            Changelog: 更新日志
             CLI Workflows: CLI 工作流
             Architecture: 架构
             ContextDB: ContextDB
@@ -69,6 +71,8 @@ plugins:
           nav_translations:
             Overview: 概要
             Quick Start: クイックスタート
+            Blog: ブログ
+            Changelog: 変更履歴
             CLI Workflows: CLI ワークフロー
             Architecture: アーキテクチャ
             ContextDB: ContextDB
@@ -81,6 +85,8 @@ plugins:
           nav_translations:
             Overview: 개요
             Quick Start: 빠른 시작
+            Blog: 블로그
+            Changelog: 변경 로그
             CLI Workflows: CLI 워크플로
             Architecture: 아키텍처
             ContextDB: ContextDB
@@ -101,6 +107,8 @@ extra_css:
 nav:
   - Overview: index.md
   - Quick Start: getting-started.md
+  - Blog: blog/index.md
+  - Changelog: changelog.md
   - CLI Workflows: use-cases.md
   - Architecture: architecture.md
   - ContextDB: contextdb.md

@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://cli.rexai.top/sitemap.xml
+# LLM index: https://cli.rexai.top/llms.txt

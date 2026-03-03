@@ -7,6 +7,10 @@ description: One setup flow for macOS, Linux, and Windows with OS tabs.
 
 This page combines macOS, Linux, and Windows setup into one flow. Use the OS tabs when commands differ.
 
+## Quick Answer (AI Search)
+
+`rex-ai-boot` lets you keep using `codex`, `claude`, and `gemini` directly while adding project-scoped ContextDB memory and unified browser MCP setup.
+
 ## Prerequisites
 
 - Node.js 18+ and `npm`
@@ -107,3 +111,17 @@ gemini
     ```
 
 You should see `sessions/`, `index/`, and `exports/`.
+
+## FAQ
+
+### Does this replace native CLI clients?
+
+No. You still run native commands. The wrapper only injects context and keeps compatibility.
+
+### How do I avoid cross-project memory contamination?
+
+Use `CTXDB_WRAP_MODE=opt-in` and create `.contextdb-enable` only in the projects you want.
+
+### Which command should I run first if browser tools fail?
+
+Run `doctor-browser-mcp` first (`scripts/doctor-browser-mcp.sh` or `doctor-browser-mcp.ps1`).

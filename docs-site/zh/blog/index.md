@@ -13,6 +13,10 @@ description: 面向 RexAI CLI 生态的工程与增长文章。
 - [CLI 对比](cli-comparison-post.md)
 - [自动化作战手册](automation-playbook-post.md)
 
+## 版本跟踪
+
+- [更新日志](../changelog.md)
+
 ## 链接规则
 
 每篇文章应包含：

@@ -1,0 +1,25 @@
+# rex-ai-boot
+
+> Local-first multi-CLI agent workflow docs for Codex CLI, Claude Code, and Gemini CLI.
+
+## Canonical
+- https://cli.rexai.top/
+
+## Core Docs
+- https://cli.rexai.top/getting-started/
+- https://cli.rexai.top/use-cases/
+- https://cli.rexai.top/contextdb/
+- https://cli.rexai.top/troubleshooting/
+- https://cli.rexai.top/changelog/
+
+## Blog
+- https://cli.rexai.top/blog/
+
+## Languages
+- https://cli.rexai.top/zh/
+- https://cli.rexai.top/ja/
+- https://cli.rexai.top/ko/
+
+## Related Sites
+- https://rexai.top/
+- https://tool.rexai.top/
