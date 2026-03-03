@@ -76,6 +76,35 @@ source ~/.zshrc
 
 可选：你也可以运行安装脚本 [`scripts/install-contextdb-shell.sh`](scripts/install-contextdb-shell.sh)，但仍建议先手动备份 `~/.zshrc`。
 
+### 2.1 作用域控制（避免跨项目复用）
+
+默认行为是 **所有 git 项目都启用包装**（`CTXDB_WRAP_MODE=all`）。
+如果你希望隔离，可在 `~/.zshrc` 设置：
+
+```zsh
+# 只在 rex-ai-boot 项目启用
+export CTXDB_WRAP_MODE=repo-only
+
+# 或：只有带 .contextdb-enable 标记文件的项目才启用
+export CTXDB_WRAP_MODE=opt-in
+```
+
+如果使用 `opt-in`，在项目根目录创建标记文件：
+
+```bash
+touch .contextdb-enable
+```
+
+### 2.2 Skills 作用域（重要）
+
+ContextDB 包装和 CLI 的 Skills 加载是两层机制：
+
+- 包装范围由上面的 `CTXDB_WRAP_MODE` 控制。
+- 安装在 `~/.codex/skills`、`~/.claude/skills` 的技能是全局可见。
+- 仅项目可见的技能应放在 `<repo>/.codex/skills`、`<repo>/.claude/skills`。
+
+如果你不希望跨项目复用技能，请把自定义技能放在仓库本地目录，而不是 `~` 下的全局目录。
+
 ### 3) 直接使用原命令
 
 ```bash

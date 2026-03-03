@@ -1,33 +1,42 @@
 ---
-title: RexAI CLI Growth Hub
-description: Practical docs and growth system for driving users to cli.rexai.top, rexai.top, and tool.rexai.top.
+title: Overview
+description: What rex-ai-boot is, why it exists, and how to use it with Codex, Claude, and Gemini.
 ---
 
-# RexAI CLI Growth Hub
+# rex-ai-boot
 
-RexAI uses a docs-as-product strategy: documentation pages act as landing pages, trust builders, and conversion channels for the product ecosystem.
+`rex-ai-boot` is a local-first workflow layer for three CLI agents:
 
-<div class="hero-copy">
-This hub explains how to run the CLI workflow, where to start by persona, and how each content page routes traffic to the right destination:
-`cli.rexai.top`, `rexai.top`, or `tool.rexai.top`.
-</div>
+- Codex CLI
+- Claude Code
+- Gemini CLI
 
-## Primary Destinations
+It adds two practical capabilities without replacing native CLIs:
 
-- CLI product: [cli.rexai.top](https://cli.rexai.top)
-- Blog and thought leadership: [rexai.top](https://rexai.top)
-- Community operations tooling: [tool.rexai.top](https://tool.rexai.top)
+1. **Filesystem ContextDB** for resumable memory across sessions.
+2. **Unified wrapper flow** so you still run `codex`, `claude`, or `gemini` directly.
 
-## Core Funnel
+## What Problems It Solves
 
-1. Discovery from search and social posts.
-2. Landing on docs pages (problem-first content).
-3. Click-through to product destination by intent.
-4. Track conversion and iterate pages weekly.
+- You can resume work with context after terminal restarts.
+- You can keep memory per project (git-root scoped).
+- You can hand off work across different CLI tools using the same context packet.
 
-## What to Read Next
+## Quick Command Preview
 
-- [Getting Started](getting-started.md)
-- [Use Cases](use-cases.md)
-- [SEO Cluster Plan](seo/content-clusters.md)
-- [Community Ops Guide](community.md)
+```bash
+# interactive mode (same commands, context injected automatically)
+codex
+claude
+gemini
+
+# one-shot mode (full 5-step pipeline)
+scripts/ctx-agent.sh --agent codex-cli --prompt "Continue from latest checkpoint"
+```
+
+## Read Next
+
+- [Quick Start](getting-started.md)
+- [CLI Workflows](use-cases.md)
+- [Architecture](architecture.md)
+- [ContextDB runtime details](contextdb.md)

@@ -6,6 +6,8 @@
 # - ROOTPATH: repo root where scripts/ctx-agent.sh lives
 # - CTXDB_RUNNER: explicit runner path (highest priority)
 # - CTXDB_REPO_NAME: explicit project name (optional)
+# - CTXDB_WRAP_MODE: all|repo-only|opt-in|off (default: all)
+# - CTXDB_MARKER_FILE: marker filename for opt-in mode (default: .contextdb-enable)
 
 typeset -g CTXDB_LAST_WORKSPACE=""
 
@@ -33,6 +35,39 @@ _ctxdb_detect_workspace_root() {
   fi
 
   return 1
+}
+
+_ctxdb_should_wrap_workspace() {
+  local workspace="$1"
+  local mode="${CTXDB_WRAP_MODE:-all}"
+
+  case "$mode" in
+    all)
+      return 0
+      ;;
+    repo-only)
+      local rootpath="${ROOTPATH:-}"
+      if [[ -z "$rootpath" ]]; then
+        return 1
+      fi
+      rootpath="$(cd "$rootpath" 2>/dev/null && pwd || true)"
+      [[ -n "$rootpath" ]] || return 1
+      [[ "$workspace" == "$rootpath" ]]
+      return $?
+      ;;
+    opt-in)
+      local marker="${CTXDB_MARKER_FILE:-.contextdb-enable}"
+      [[ -f "$workspace/$marker" ]]
+      return $?
+      ;;
+    off|disabled|none)
+      return 1
+      ;;
+    *)
+      # Keep behavior predictable for unknown values.
+      return 0
+      ;;
+  esac
 }
 
 _ctxdb_cmd_in_list() {
@@ -96,6 +131,11 @@ _ctxdb_run_or_passthrough() {
   local workspace=""
   workspace="$(_ctxdb_detect_workspace_root || true)"
   if [[ -z "$workspace" ]]; then
+    command "$passthrough" "$@"
+    return $?
+  fi
+
+  if ! _ctxdb_should_wrap_workspace "$workspace"; then
     command "$passthrough" "$@"
     return $?
   fi

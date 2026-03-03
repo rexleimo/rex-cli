@@ -1,38 +1,52 @@
 ---
-title: Use Cases
-description: Match user intent to the right RexAI destination.
+title: CLI Workflows
+description: Practical usage patterns for interactive and one-shot agent execution.
 ---
 
-# Use Cases
+# CLI Workflows
 
-## 1) AI CLI Operators
+## Mode A: Interactive Resume (default)
 
-Pain point: maintaining context across Codex, Claude, and Gemini sessions.
+Use native commands. Wrapper auto-runs:
 
-Recommended path:
-- Read architecture docs in this site
-- Start product flow at [cli.rexai.top](https://cli.rexai.top)
+`init -> session:latest/new -> context:pack -> start CLI`
 
-## 2) Content and Growth Teams
+```bash
+codex
+claude
+gemini
+```
 
-Pain point: repeating community workflow tasks manually.
+Best for daily development with automatic startup context.
 
-Recommended path:
-- Review playbooks and templates here
-- Use [tool.rexai.top](https://tool.rexai.top) for operational support
+## Mode B: One-shot Automation
 
-## 3) Technical Decision Makers
+Use when you want a full closed loop in one command:
 
-Pain point: evaluating long-running-agent infrastructure and reliability.
+`init -> session:latest/new -> event:add -> checkpoint -> context:pack`
 
-Recommended path:
-- Read case studies and benchmarks
-- Continue to [rexai.top](https://rexai.top) for deep-dive articles
+```bash
+scripts/ctx-agent.sh --agent claude-code --prompt "Summarize errors and propose next steps"
+scripts/ctx-agent.sh --agent gemini-cli --prompt "Continue implementation from checkpoint"
+scripts/ctx-agent.sh --agent codex-cli --prompt "Run tests and update task status"
+```
 
-## Intent-to-Page Mapping
+## Cross-CLI Handoff
 
-| Intent | Entry Page | Destination |
-|---|---|---|
-| "multi-cli context memory" | Home / Getting Started | `cli.rexai.top` |
-| "community operation tooling" | Community / Templates | `tool.rexai.top` |
-| "agent architecture analysis" | Blog / Use Cases | `rexai.top` |
+A common flow is:
+
+1. Analyze with Claude.
+2. Implement with Codex.
+3. Verify/compare with Gemini.
+
+Because all three read/write the same project ContextDB, handoff stays coherent.
+
+## Pass-through Commands
+
+Management commands are not wrapped and continue to work natively, for example:
+
+```bash
+codex mcp
+claude doctor
+gemini extensions
+```

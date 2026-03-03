@@ -1,39 +1,69 @@
 ---
-title: Getting Started
-description: Deploy docs, configure funnel links, and launch distribution in one day.
+title: Quick Start
+description: Install, enable wrappers, and run your first project-scoped session.
 ---
 
-# Getting Started
+# Quick Start
 
-## Day-1 Setup
+## Prerequisites
 
-1. Build and deploy this MkDocs site to GitHub Pages.
-2. Confirm links route to:
-   - `https://cli.rexai.top`
-   - `https://rexai.top`
-   - `https://tool.rexai.top`
-3. Verify Search Console + Bing Webmaster ownership.
-4. Publish one launch article and one use-case page.
+- macOS/Linux shell with `zsh`
+- `node` + `npm`
+- One or more CLIs installed: `codex`, `claude`, `gemini`
 
-## Deployment Commands
+## 1) Build ContextDB CLI
 
 ```bash
-pip install -r docs-requirements.txt
-mkdocs build --strict
-mkdocs serve
+cd mcp-server
+npm install
+npm run build
 ```
 
-## CTA Strategy
+## 2) Enable shell wrappers
 
-- Product intent keywords -> CTA to `cli.rexai.top`
-- Education keywords -> CTA to `rexai.top`
-- Ops workflow keywords -> CTA to `tool.rexai.top`
+Add this block to `~/.zshrc`:
 
-## Initial Metrics
+```zsh
+# >>> contextdb-shell >>>
+export ROOTPATH="${ROOTPATH:-$HOME/cool.cnb/rex-ai-boot}"
+export CTXDB_WRAP_MODE=opt-in
+if [[ -f "$ROOTPATH/scripts/contextdb-shell.zsh" ]]; then
+  source "$ROOTPATH/scripts/contextdb-shell.zsh"
+fi
+# <<< contextdb-shell <<<
+```
 
-<div class="kpi-grid">
-  <div class="card"><strong>Indexing</strong><br/>Pages indexed in 7 days</div>
-  <div class="card"><strong>CTR</strong><br/>SERP CTR by landing page</div>
-  <div class="card"><strong>Clicks</strong><br/>Outbound clicks to each target domain</div>
-  <div class="card"><strong>Conversion</strong><br/>Lead or signup rate from docs traffic</div>
-</div>
+Reload shell:
+
+```bash
+source ~/.zshrc
+```
+
+## 3) Enable current project
+
+In each target project root:
+
+```bash
+touch .contextdb-enable
+```
+
+This prevents accidental cross-project wrapping.
+
+## 4) Start working
+
+```bash
+cd /path/to/your/project
+codex
+# or
+claude
+# or
+gemini
+```
+
+## 5) Verify data created
+
+```bash
+ls memory/context-db
+```
+
+You should see `sessions/`, `index/`, and `exports/`.

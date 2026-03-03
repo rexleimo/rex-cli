@@ -76,6 +76,35 @@ If your repo path is different, set `ROOTPATH` to your actual location.
 
 Optional helper script: [`scripts/install-contextdb-shell.sh`](scripts/install-contextdb-shell.sh)
 
+### 2.1 Scope control (avoid cross-project reuse)
+
+By default, wrappers run in **all git repositories** (`CTXDB_WRAP_MODE=all`).
+If you want isolation, set one of these in `~/.zshrc`:
+
+```zsh
+# only enable in rex-ai-boot itself
+export CTXDB_WRAP_MODE=repo-only
+
+# or: only enable in repos that contain .contextdb-enable
+export CTXDB_WRAP_MODE=opt-in
+```
+
+For `opt-in`, create marker file in a project root:
+
+```bash
+touch .contextdb-enable
+```
+
+### 2.2 Skill scope (important)
+
+ContextDB wrapping and CLI skill loading are different layers:
+
+- Wrapping scope is controlled by `CTXDB_WRAP_MODE` above.
+- Skills installed in `~/.codex/skills` or `~/.claude/skills` are global.
+- Project-only skills should live in `<repo>/.codex/skills` or `<repo>/.claude/skills`.
+
+If you don't want cross-project skill reuse, keep custom skills in repo-local folders instead of global home directories.
+
 ### 3) Use original commands directly
 
 ```bash

@@ -1,6 +1,6 @@
-site_name: RexAI CLI Growth Hub
+site_name: rex-ai-boot Documentation
 site_url: https://cli.rexai.top
-site_description: Growth and product documentation hub for RexAI CLI ecosystem.
+site_description: Local-first multi-CLI agent workflow docs for Codex CLI, Claude Code, and Gemini CLI.
 site_author: RexAI
 repo_url: https://github.com/rexleimo/rex-ai-boot
 repo_name: rexleimo/rex-ai-boot
@@ -15,7 +15,6 @@ theme:
   logo: assets/logo.svg
   favicon: assets/favicon.svg
   features:
-    - navigation.instant
     - navigation.sections
     - navigation.top
     - content.code.copy
@@ -31,15 +30,33 @@ markdown_extensions:
       permalink: true
 
 plugins:
-  - search
+  - search:
+      lang:
+        - en
+        - zh
+        - ja
+        - ko
+  - i18n:
+      docs_structure: folder
+      reconfigure_material: true
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: zh
+          name: 简体中文
+          build: true
+        - locale: ja
+          name: 日本語
+          build: true
+        - locale: ko
+          name: 한국어
+          build: true
 
 extra:
-  social:
-    - icon: fontawesome/brands/x-twitter
-      link: https://x.com/openai
-      name: X
-  canonical_targets:
-    cli: https://cli.rexai.top
+  links:
+    product: https://cli.rexai.top
     blog: https://rexai.top
     tools: https://tool.rexai.top
 
@@ -50,22 +67,9 @@ extra_css:
   - assets/custom.css
 
 nav:
-  - Home: index.md
-  - Getting Started: getting-started.md
-  - Use Cases: use-cases.md
-  - Community: community.md
-  - Community Ops:
-      - Posting Policy: community/posting-policy.md
-      - Post Templates: community/post-templates.md
-  - Blog:
-      - Overview: blog/index.md
-      - Launch Post: blog/launch-post.md
-      - CLI Comparison: blog/cli-comparison-post.md
-      - Automation Playbook: blog/automation-playbook-post.md
-  - SEO:
-      - Keyword Map: seo/keyword-map.md
-      - Content Clusters: seo/content-clusters.md
-      - Programmatic Template: seo/programmatic-page-template.md
-  - Monetization:
-      - Plan: monetization/plan.md
-      - Pricing Intent: monetization/pricing-intent.md
+  - Overview: index.md
+  - Quick Start: getting-started.md
+  - CLI Workflows: use-cases.md
+  - Architecture: architecture.md
+  - ContextDB: contextdb.md
+  - Troubleshooting: troubleshooting.md
