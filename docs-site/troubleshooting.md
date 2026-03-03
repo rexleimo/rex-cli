@@ -42,6 +42,15 @@ Fix:
 1. Pull latest `main`.
 2. Re-open shell and retry `claude`/`codex`/`gemini`.
 
+Latest versions use a unified runtime core (`ctx-agent-core.mjs`) for both shell and Node wrappers to avoid this drift.
+
+## `search` returns empty after sidecar loss
+
+If `memory/context-db/index/context.db` is missing or stale:
+
+1. Run `cd mcp-server && npm run contextdb -- index:rebuild`
+2. Retry `search` / `timeline` / `event:get`
+
 ## Commands not wrapped
 
 Check these conditions:

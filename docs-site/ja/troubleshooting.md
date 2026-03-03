@@ -33,6 +33,15 @@ powershell -ExecutionPolicy Bypass -File .\\scripts\\install-browser-mcp.ps1
 
 古い `ctx-agent.sh` の既知問題です。`main` を最新化してください。
 
+最新版では `ctx-agent-core.mjs` に実行ロジックを統合し、sh/mjs の実装差分を解消しています。
+
+## `search` が空になる
+
+`memory/context-db/index/context.db` が欠損/古い場合:
+
+1. `cd mcp-server && npm run contextdb -- index:rebuild`
+2. `search` / `timeline` / `event:get` を再実行
+
 ## ラップされない
 
 - git リポジトリ内か確認

@@ -14,6 +14,7 @@ description: 版本历史、升级说明与文档变更入口。
 
 ## 最近版本
 
+- `Unreleased`：ContextDB 新增 SQLite sidecar 索引、`index:rebuild`、可选 `--semantic` 检索路径，以及统一 `ctx-agent` 运行核心
 - `0.4.2`（2026-03-03）：将 Windows 步骤合并到标签化 Quick Start
 - `0.4.1`（2026-03-03）：新增独立 Windows 指南与互链
 - `0.4.0`（2026-03-03）：新增 Windows PowerShell 安装脚本

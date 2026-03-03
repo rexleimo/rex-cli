@@ -8,6 +8,7 @@ import {
   ensureContextDb,
   findLatestSession,
   getEventById,
+  rebuildContextIndex,
   resolveWorkspaceRoot,
   searchEvents,
   writeCheckpoint,
@@ -26,9 +27,10 @@ function usage(): string {
     '  contextdb event:add --session <id> --role <user|assistant|tool|system> --text <text> [--kind <kind>] [--refs a,b]',
     '  contextdb checkpoint --session <id> --summary <text> [--status running|blocked|done] [--next a|b] [--artifacts a|b]',
     '  contextdb context:pack --session <id> [--limit 30] [--token-budget 1200] [--kinds prompt,response,error] [--refs a,b] [--no-dedupe] [--out memory/context-db/exports/<id>.md] [--stdout]',
-    '  contextdb search [--query <text>] [--project <name>] [--session <id>] [--role <role>] [--kinds a,b] [--refs a,b] [--limit 20]',
+    '  contextdb search [--query <text>] [--project <name>] [--session <id>] [--role <role>] [--kinds a,b] [--refs a,b] [--limit 20] [--semantic]',
     '  contextdb timeline [--project <name> | --session <id>] [--limit 50]',
     '  contextdb event:get --id <sessionId>#<seq>',
+    '  contextdb index:rebuild [--workspace <path>]',
     '',
   ].join('\n');
 }
@@ -185,6 +187,7 @@ async function main(): Promise<void> {
         kinds: getOptionalCsv(options, 'kinds'),
         refs: getOptionalCsv(options, 'refs'),
         limit: Number.isFinite(limit) ? limit : 20,
+        semantic: options.semantic === true,
       });
       console.log(JSON.stringify(result, null, 2));
       return;
@@ -207,6 +210,12 @@ async function main(): Promise<void> {
         workspaceRoot,
         eventId: getOption(options, 'id'),
       });
+      console.log(JSON.stringify(result, null, 2));
+      return;
+    }
+
+    case 'index:rebuild': {
+      const result = await rebuildContextIndex(workspaceRoot);
       console.log(JSON.stringify(result, null, 2));
       return;
     }

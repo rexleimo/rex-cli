@@ -9,6 +9,7 @@ description: Use when running tasks in Codex CLI, Claude Code, or Gemini CLI and
 Use this skill to run a task with full filesystem context DB automation in one command.
 
 Script path: `scripts/ctx-agent.sh`
+Runtime core: `scripts/ctx-agent-core.mjs` (single source for sh/mjs wrappers)
 
 ## When to Use
 - You want cross-CLI memory continuity (`codex`, `claude`, `gemini`) in the same project.
@@ -52,7 +53,20 @@ cd mcp-server
 npm run contextdb -- search --query "auth race" --project rex-ai-boot --kinds response --refs auth.ts
 npm run contextdb -- timeline --session <session_id> --limit 30
 npm run contextdb -- event:get --id <session_id>#<seq>
+npm run contextdb -- index:rebuild
 ```
+
+Optional semantic rerank:
+
+```bash
+export CONTEXTDB_SEMANTIC=1
+export CONTEXTDB_SEMANTIC_PROVIDER=token
+npm run contextdb -- search --query "issue auth" --project rex-ai-boot --semantic
+```
+
+Recovery:
+- If retrieval returns empty unexpectedly, run `index:rebuild` once.
+- Source-of-truth remains `memory/context-db/sessions/*`; sidecar is rebuildable cache.
 
 ## Packet Budget and Filters
 

@@ -7,13 +7,13 @@ description: Session model, five runtime steps, and command references.
 
 ## Quick Answer (AI Search)
 
-ContextDB is a filesystem session layer for multi-CLI agent workflows. It stores events, checkpoints, and resumable context packets per project.
+ContextDB is a filesystem session layer for multi-CLI agent workflows. It stores events, checkpoints, and resumable context packets per project, and now keeps a SQLite sidecar index for faster retrieval.
 
 ## Canonical 5 Steps
 
 At runtime, ContextDB can execute this sequence:
 
-1. `init` - ensure DB folders and index exist.
+1. `init` - ensure DB folders and sidecar indexes exist.
 2. `session:new` or `session:latest` - resolve session per `agent + project`.
 3. `event:add` - store user/model/tool events.
 4. `checkpoint` - write stage summary, status, and next actions.
@@ -33,6 +33,7 @@ npm run contextdb -- session:new --agent codex-cli --project demo --goal "implem
 npm run contextdb -- event:add --session <id> --role user --kind prompt --text "start"
 npm run contextdb -- checkpoint --session <id> --summary "phase done" --status running --next "write tests|implement"
 npm run contextdb -- context:pack --session <id> --out memory/context-db/exports/<id>-context.md
+npm run contextdb -- index:rebuild
 ```
 
 ## Packet Controls (P0)
@@ -54,17 +55,45 @@ npm run contextdb -- context:pack \
 
 ## Retrieval Commands (P1)
 
-ContextDB now provides lightweight retrieval over sidecar indexes:
+ContextDB now provides SQLite-backed retrieval over sidecar indexes:
 
 ```bash
 npm run contextdb -- search --query "auth race" --project demo --kinds response --refs auth.ts
 npm run contextdb -- timeline --session <id> --limit 30
 npm run contextdb -- event:get --id <sessionId>#<seq>
+npm run contextdb -- index:rebuild
 ```
 
 - `search`: query indexed events.
 - `timeline`: merged event/checkpoint feed.
 - `event:get`: fetch a specific event by stable ID.
+- `index:rebuild`: rebuild SQLite sidecar from canonical session files.
+
+## Optional Semantic Search (P2)
+
+Semantic mode is optional and always falls back to lexical search when unavailable.
+
+```bash
+export CONTEXTDB_SEMANTIC=1
+export CONTEXTDB_SEMANTIC_PROVIDER=token
+npm run contextdb -- search --query "issue auth" --project demo --semantic
+```
+
+- `--semantic`: request semantic reranking.
+- If semantic provider is disabled/unavailable, lexical query path is used automatically.
+
+## Storage Layout
+
+ContextDB keeps canonical data in session files and uses sidecar indexes for speed:
+
+```text
+memory/context-db/
+  sessions/<session_id>/*        # source of truth
+  index/context.db               # sqlite sidecar (rebuildable)
+  index/sessions.jsonl           # compatibility index
+  index/events.jsonl             # compatibility index
+  index/checkpoints.jsonl        # compatibility index
+```
 
 ## Session ID Format
 

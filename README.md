@@ -162,7 +162,10 @@ In one-shot mode, all 5 steps run automatically:
 ```text
 memory/context-db/
   manifest.json
+  index/context.db
   index/sessions.jsonl
+  index/events.jsonl
+  index/checkpoints.jsonl
   sessions/<session_id>/
     meta.json
     l0-summary.md
@@ -183,7 +186,19 @@ npm run contextdb -- session:new --agent claude-code --project rex-ai-boot --goa
 npm run contextdb -- event:add --session <id> --role user --text "need retry plan"
 npm run contextdb -- checkpoint --session <id> --summary "blocked by auth" --status blocked --next "wait-login|resume"
 npm run contextdb -- context:pack --session <id> --out memory/context-db/exports/<id>-context.md
+npm run contextdb -- index:rebuild
+npm run contextdb -- search --query "auth race" --project rex-ai-boot --kinds response --refs auth.ts
 ```
+
+Optional semantic rerank (P2):
+
+```bash
+export CONTEXTDB_SEMANTIC=1
+export CONTEXTDB_SEMANTIC_PROVIDER=token
+npm run contextdb -- search --query "issue auth" --project rex-ai-boot --semantic
+```
+
+If semantic provider is unavailable, `search --semantic` falls back to lexical search automatically.
 
 ## Versioning and Releases
 

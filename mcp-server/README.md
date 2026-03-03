@@ -116,7 +116,7 @@ Use optional pacing to reduce flaky fast-action races:
 
 ## Filesystem Context DB (for Codex/Claude/Gemini)
 
-This repo now includes a lightweight filesystem context DB under `memory/context-db` to share memory across CLI tools.
+This repo now includes a lightweight filesystem context DB under `memory/context-db` to share memory across CLI tools, with a SQLite sidecar index at `memory/context-db/index/context.db`.
 
 ### Commands
 
@@ -127,6 +127,18 @@ npm run contextdb -- session:new --agent claude-code --project rex-ai-boot --goa
 npm run contextdb -- event:add --session <session_id> --role user --text "Need retry and checkpoint strategy"
 npm run contextdb -- checkpoint --session <session_id> --summary "Auth wall found; waiting human login" --status blocked --next "wait-login|resume-run"
 npm run contextdb -- context:pack --session <session_id> --out memory/context-db/exports/<session_id>-context.md
+npm run contextdb -- search --query "auth race" --project rex-ai-boot
+npm run contextdb -- timeline --session <session_id> --limit 30
+npm run contextdb -- event:get --id <session_id>#<seq>
+npm run contextdb -- index:rebuild
+```
+
+Optional semantic rerank:
+
+```bash
+export CONTEXTDB_SEMANTIC=1
+export CONTEXTDB_SEMANTIC_PROVIDER=token
+npm run contextdb -- search --query "issue auth" --project rex-ai-boot --semantic
 ```
 
 ### Feed context to each CLI

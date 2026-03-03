@@ -2,6 +2,19 @@ import { promises as fs } from 'node:fs';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {
+  countSqliteRows,
+  ensureSqliteSidecar,
+  getEventRowById,
+  recreateSqliteSidecar,
+  searchEventRows,
+  timelineCheckpointRows,
+  timelineEventRows,
+  upsertCheckpointRow,
+  upsertEventRow,
+  upsertSessionRow,
+} from './sqlite.js';
+import { semanticRerank } from './semantic.js';
 
 export type SessionStatus = 'running' | 'blocked' | 'done';
 export type EventRole = 'system' | 'user' | 'assistant' | 'tool';
@@ -50,6 +63,7 @@ const MANIFEST_NAME = 'manifest.json';
 const INDEX_SESSIONS_NAME = 'sessions.jsonl';
 const INDEX_EVENTS_NAME = 'events.jsonl';
 const INDEX_CHECKPOINTS_NAME = 'checkpoints.jsonl';
+const SQLITE_NAME = 'context.db';
 const CHARS_PER_TOKEN_ESTIMATE = 4;
 const EVENT_DEDUP_WINDOW_MS = 30_000;
 const SESSION_LOCK_TIMEOUT_MS = 10_000;
@@ -67,6 +81,7 @@ export interface IndexedEvent {
   text: string;
   refs: string[];
   textHash: string;
+  signatureHash: string;
 }
 
 export interface IndexedCheckpoint {
@@ -240,6 +255,10 @@ function getCheckpointsIndexPath(workspaceRoot: string): string {
   return path.join(getDbRoot(workspaceRoot), 'index', INDEX_CHECKPOINTS_NAME);
 }
 
+function getSqlitePath(workspaceRoot: string): string {
+  return path.join(getDbRoot(workspaceRoot), 'index', SQLITE_NAME);
+}
+
 function getSessionPaths(workspaceRoot: string, sessionId: string): SessionPaths {
   const dir = path.join(getDbRoot(workspaceRoot), 'sessions', sessionId);
   return {
@@ -366,6 +385,7 @@ export async function ensureContextDb(workspaceRoot: string): Promise<string> {
   await ensureFile(getSessionsIndexPath(workspaceRoot), '');
   await ensureFile(getEventsIndexPath(workspaceRoot), '');
   await ensureFile(getCheckpointsIndexPath(workspaceRoot), '');
+  ensureSqliteSidecar(getSqlitePath(workspaceRoot));
   return dbRoot;
 }
 
@@ -428,6 +448,20 @@ export async function createSession(input: CreateSessionInput): Promise<SessionM
     tags: input.tags ?? [],
     createdAt: ts,
   });
+
+  try {
+    upsertSessionRow(getSqlitePath(input.workspaceRoot), {
+      sessionId,
+      agent: input.agent,
+      project: input.project,
+      goal: input.goal,
+      tags: input.tags ?? [],
+      createdAt: ts,
+      updatedAt: ts,
+    });
+  } catch {
+    // SQLite sidecar is a rebuildable cache; canonical session files already persisted.
+  }
 
   return meta;
 }
@@ -497,8 +531,23 @@ export async function appendEvent(input: AppendEventInput): Promise<ContextEvent
       text: event.text,
       refs: event.refs,
       textHash: hashText(sanitizeInline(event.text)),
+      signatureHash: eventSignature(event),
     };
     await appendJsonLine(getEventsIndexPath(input.workspaceRoot), indexed);
+    try {
+      upsertSessionRow(getSqlitePath(input.workspaceRoot), {
+        sessionId: input.sessionId,
+        agent: meta.agent,
+        project: meta.project,
+        goal: meta.goal,
+        tags: meta.tags,
+        createdAt: meta.createdAt,
+        updatedAt: meta.updatedAt,
+      });
+      upsertEventRow(getSqlitePath(input.workspaceRoot), indexed);
+    } catch {
+      // SQLite sidecar is a rebuildable cache; canonical event files already persisted.
+    }
     return event;
   });
 }
@@ -562,6 +611,20 @@ export async function writeCheckpoint(input: WriteCheckpointInput): Promise<Chec
       artifacts: checkpoint.artifacts,
     };
     await appendJsonLine(getCheckpointsIndexPath(input.workspaceRoot), indexed);
+    try {
+      upsertSessionRow(getSqlitePath(input.workspaceRoot), {
+        sessionId: input.sessionId,
+        agent: meta.agent,
+        project: meta.project,
+        goal: meta.goal,
+        tags: meta.tags,
+        createdAt: meta.createdAt,
+        updatedAt: meta.updatedAt,
+      });
+      upsertCheckpointRow(getSqlitePath(input.workspaceRoot), indexed);
+    } catch {
+      // SQLite sidecar is a rebuildable cache; canonical checkpoint files already persisted.
+    }
     return checkpoint;
   });
 }
@@ -761,34 +824,252 @@ export interface SearchEventsInput {
   kinds?: string[];
   refs?: string[];
   limit?: number;
+  semantic?: boolean;
 }
 
 export interface SearchEventsOutput {
   results: IndexedEvent[];
 }
 
+function isRecoverableSidecarError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /sqlite|database|no such table|cannot open/i.test(message);
+}
+
+async function ensureManifestAndIndexes(workspaceRoot: string): Promise<void> {
+  const dbRoot = getDbRoot(workspaceRoot);
+  await Promise.all([
+    fs.mkdir(path.join(dbRoot, 'sessions'), { recursive: true }),
+    fs.mkdir(path.join(dbRoot, 'index'), { recursive: true }),
+    fs.mkdir(path.join(dbRoot, 'exports'), { recursive: true }),
+  ]);
+  const manifestPath = path.join(dbRoot, MANIFEST_NAME);
+  if (!existsSync(manifestPath)) {
+    await writeJson(manifestPath, {
+      version: 1,
+      layout: 'l0-l1-l2',
+      description: 'Filesystem context database for multi-CLI agent memory',
+      createdAt: nowIso(),
+    });
+  }
+  await ensureFile(getSessionsIndexPath(workspaceRoot), '');
+  await ensureFile(getEventsIndexPath(workspaceRoot), '');
+  await ensureFile(getCheckpointsIndexPath(workspaceRoot), '');
+}
+
+async function withSidecarReadFallback<T>(
+  workspaceRoot: string,
+  reader: () => T
+): Promise<T> {
+  const dbPath = getSqlitePath(workspaceRoot);
+  if (!existsSync(dbPath)) {
+    await rebuildContextIndex(workspaceRoot);
+  } else {
+    try {
+      const counts = countSqliteRows(dbPath);
+      if (counts.sessions === 0) {
+        const sessionsRoot = path.join(getDbRoot(workspaceRoot), 'sessions');
+        const entries = await fs.readdir(sessionsRoot, { withFileTypes: true });
+        if (entries.some((entry) => entry.isDirectory())) {
+          await rebuildContextIndex(workspaceRoot);
+        }
+      }
+    } catch {
+      // Fallback will be handled by the catch block below.
+    }
+  }
+
+  try {
+    return reader();
+  } catch (error) {
+    if (!isRecoverableSidecarError(error)) {
+      throw error;
+    }
+    await rebuildContextIndex(workspaceRoot);
+    return reader();
+  }
+}
+
+export interface RebuildIndexOutput {
+  ok: true;
+  workspaceRoot: string;
+  dbPath: string;
+  sessions: number;
+  events: number;
+  checkpoints: number;
+  tookMs: number;
+}
+
+export async function rebuildContextIndex(workspaceRoot: string): Promise<RebuildIndexOutput> {
+  const startedAt = Date.now();
+  await ensureManifestAndIndexes(workspaceRoot);
+  const dbPath = getSqlitePath(workspaceRoot);
+  recreateSqliteSidecar(dbPath);
+
+  const sessionsRoot = path.join(getDbRoot(workspaceRoot), 'sessions');
+  const entries = await fs.readdir(sessionsRoot, { withFileTypes: true });
+
+  let sessions = 0;
+  let events = 0;
+  let checkpoints = 0;
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const sessionId = entry.name;
+    const paths = getSessionPaths(workspaceRoot, sessionId);
+    if (!existsSync(paths.meta)) continue;
+
+    let meta: SessionMeta;
+    try {
+      meta = await readJson<SessionMeta>(paths.meta);
+    } catch {
+      continue;
+    }
+
+    upsertSessionRow(dbPath, {
+      sessionId: meta.sessionId,
+      agent: meta.agent,
+      project: meta.project,
+      goal: meta.goal,
+      tags: meta.tags,
+      createdAt: meta.createdAt,
+      updatedAt: meta.updatedAt,
+    });
+    sessions += 1;
+
+    const eventRows = await readJsonLines<ContextEvent>(paths.events);
+    for (let index = 0; index < eventRows.length; index += 1) {
+      const event = eventRows[index];
+      const seq = typeof event.seq === 'number' && Number.isFinite(event.seq) && event.seq > 0
+        ? Math.floor(event.seq)
+        : index + 1;
+      const refs = normalizeRefs(event.refs ?? []);
+      const ts = typeof event.ts === 'string' && event.ts.length > 0 ? event.ts : nowIso();
+      const indexed: IndexedEvent = {
+        eventId: `${meta.sessionId}#${seq}`,
+        sessionId: meta.sessionId,
+        seq,
+        ts,
+        tsEpoch: toEpoch(ts),
+        project: meta.project,
+        agent: meta.agent,
+        role: event.role,
+        kind: event.kind,
+        text: event.text,
+        refs,
+        textHash: hashText(sanitizeInline(event.text)),
+        signatureHash: eventSignature({
+          role: event.role,
+          kind: event.kind,
+          text: event.text,
+          refs,
+        }),
+      };
+      upsertEventRow(dbPath, indexed);
+      events += 1;
+    }
+
+    const checkpointRows = await readJsonLines<Checkpoint>(paths.checkpoints);
+    for (let index = 0; index < checkpointRows.length; index += 1) {
+      const checkpoint = checkpointRows[index];
+      const seq = typeof checkpoint.seq === 'number' && Number.isFinite(checkpoint.seq) && checkpoint.seq > 0
+        ? Math.floor(checkpoint.seq)
+        : index + 1;
+      const ts = typeof checkpoint.ts === 'string' && checkpoint.ts.length > 0 ? checkpoint.ts : nowIso();
+      const indexed: IndexedCheckpoint = {
+        checkpointId: `${meta.sessionId}#C${seq}`,
+        sessionId: meta.sessionId,
+        seq,
+        ts,
+        tsEpoch: toEpoch(ts),
+        project: meta.project,
+        agent: meta.agent,
+        status: checkpoint.status,
+        summary: checkpoint.summary,
+        nextActions: checkpoint.nextActions ?? [],
+        artifacts: checkpoint.artifacts ?? [],
+      };
+      upsertCheckpointRow(dbPath, indexed);
+      checkpoints += 1;
+    }
+  }
+
+  return {
+    ok: true,
+    workspaceRoot,
+    dbPath,
+    sessions,
+    events,
+    checkpoints,
+    tookMs: Date.now() - startedAt,
+  };
+}
+
 export async function searchEvents(input: SearchEventsInput): Promise<SearchEventsOutput> {
   await ensureContextDb(input.workspaceRoot);
-  const events = await readJsonLines<IndexedEvent>(getEventsIndexPath(input.workspaceRoot));
   const limit = input.limit && Number.isFinite(input.limit) ? Math.max(1, Math.floor(input.limit)) : 20;
-  const query = typeof input.query === 'string' && input.query.trim().length > 0
-    ? input.query.trim().toLowerCase()
-    : null;
-  const kindFilters = new Set((input.kinds ?? []).map((kind) => kind.trim()).filter((kind) => kind.length > 0));
-  const refFilters = new Set(normalizeRefs(input.refs ?? []));
+  const query = typeof input.query === 'string' ? input.query.trim() : '';
+  const semanticRequested = input.semantic === true && query.length > 0;
+  const candidateLimit = semanticRequested
+    ? Math.max(limit * 5, 50)
+    : limit;
 
-  const filtered = events.filter((event) => {
-    if (input.project && event.project !== input.project) return false;
-    if (input.sessionId && event.sessionId !== input.sessionId) return false;
-    if (input.role && event.role !== input.role) return false;
-    if (kindFilters.size > 0 && !kindFilters.has(event.kind)) return false;
-    if (refFilters.size > 0 && !event.refs.some((ref) => refFilters.has(ref))) return false;
-    if (query && !sanitizeInline(event.text).toLowerCase().includes(query)) return false;
-    return true;
+  const rows = await withSidecarReadFallback(input.workspaceRoot, () => {
+    return searchEventRows(getSqlitePath(input.workspaceRoot), {
+      project: input.project,
+      sessionId: input.sessionId,
+      role: input.role,
+      kinds: (input.kinds ?? []).map((kind) => kind.trim()).filter((kind) => kind.length > 0),
+      refs: normalizeRefs(input.refs ?? []),
+      query: semanticRequested ? undefined : (query.length > 0 ? query : undefined),
+      limit: candidateLimit,
+    });
   });
 
-  filtered.sort((a, b) => b.tsEpoch - a.tsEpoch);
-  return { results: filtered.slice(0, limit) };
+  let selectedRows = rows.slice(0, limit);
+  if (semanticRequested) {
+    const reranked = semanticRerank(
+      query,
+      rows.map((row) => ({
+        id: row.eventId,
+        text: `${row.kind} ${row.text}`,
+        value: row,
+      })),
+      limit
+    );
+    if (reranked && reranked.length > 0) {
+      selectedRows = reranked.map((item) => item.value);
+    } else {
+      selectedRows = await withSidecarReadFallback(input.workspaceRoot, () => {
+        return searchEventRows(getSqlitePath(input.workspaceRoot), {
+          project: input.project,
+          sessionId: input.sessionId,
+          role: input.role,
+          kinds: (input.kinds ?? []).map((kind) => kind.trim()).filter((kind) => kind.length > 0),
+          refs: normalizeRefs(input.refs ?? []),
+          query,
+          limit,
+        });
+      });
+    }
+  }
+
+  const results: IndexedEvent[] = selectedRows.map((row) => ({
+    eventId: row.eventId,
+    sessionId: row.sessionId,
+    seq: row.seq,
+    ts: row.ts,
+    tsEpoch: row.tsEpoch,
+    project: row.project,
+    agent: row.agent,
+    role: row.role as EventRole,
+    kind: row.kind,
+    text: row.text,
+    refs: row.refs,
+    textHash: row.textHash,
+    signatureHash: row.signatureHash,
+  }));
+  return { results };
 }
 
 export interface GetEventByIdInput {
@@ -816,12 +1097,30 @@ export async function getEventById(input: GetEventByIdInput): Promise<GetEventBy
   }
 
   await ensureContextDb(input.workspaceRoot);
-  const [meta, events] = await Promise.all([
+  const [meta, indexed] = await Promise.all([
     getSessionMeta(input.workspaceRoot, sessionId),
-    readJsonLines<ContextEvent>(getSessionPaths(input.workspaceRoot, sessionId).events),
+    withSidecarReadFallback(input.workspaceRoot, () => getEventRowById(getSqlitePath(input.workspaceRoot), input.eventId)),
   ]);
 
-  const bySeq = events.find((event) => event.seq === seq);
+  if (indexed) {
+    return {
+      eventId: input.eventId,
+      sessionId,
+      project: meta.project,
+      agent: meta.agent,
+      event: {
+        seq: indexed.seq,
+        ts: indexed.ts,
+        role: indexed.role as EventRole,
+        kind: indexed.kind,
+        text: indexed.text,
+        refs: indexed.refs,
+      },
+    };
+  }
+
+  const events = await readJsonLines<ContextEvent>(getSessionPaths(input.workspaceRoot, sessionId).events);
+  const bySeq = events.find((event) => event.seq === seq) ?? null;
   const fallback = events[seq - 1] ?? null;
   return {
     eventId: input.eventId,
@@ -845,11 +1144,21 @@ export interface BuildTimelineOutput {
 
 export async function buildTimeline(input: BuildTimelineInput): Promise<BuildTimelineOutput> {
   await ensureContextDb(input.workspaceRoot);
-  const [events, checkpoints] = await Promise.all([
-    readJsonLines<IndexedEvent>(getEventsIndexPath(input.workspaceRoot)),
-    readJsonLines<IndexedCheckpoint>(getCheckpointsIndexPath(input.workspaceRoot)),
-  ]);
   const limit = input.limit && Number.isFinite(input.limit) ? Math.max(1, Math.floor(input.limit)) : 50;
+  const [events, checkpoints] = await withSidecarReadFallback(input.workspaceRoot, () => {
+    return [
+      timelineEventRows(getSqlitePath(input.workspaceRoot), {
+        project: input.project,
+        sessionId: input.sessionId,
+        limit,
+      }),
+      timelineCheckpointRows(getSqlitePath(input.workspaceRoot), {
+        project: input.project,
+        sessionId: input.sessionId,
+        limit,
+      }),
+    ] as const;
+  });
 
   const entries: TimelineEntry[] = [
     ...events.map((event): TimelineEntry => ({
@@ -876,11 +1185,7 @@ export async function buildTimeline(input: BuildTimelineInput): Promise<BuildTim
       refs: checkpoint.artifacts,
       id: checkpoint.checkpointId,
     })),
-  ].filter((entry) => {
-    if (input.project && entry.project !== input.project) return false;
-    if (input.sessionId && entry.sessionId !== input.sessionId) return false;
-    return true;
-  });
+  ];
 
   entries.sort((a, b) => b.tsEpoch - a.tsEpoch);
   return { items: entries.slice(0, limit) };

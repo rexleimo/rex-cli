@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 import {
   appendEvent,
@@ -29,11 +30,13 @@ test('ensureContextDb initializes expected directory structure', async () => {
   const manifestPath = path.join(dbRoot, 'manifest.json');
   const sessionsPath = path.join(dbRoot, 'sessions');
   const indexPath = path.join(dbRoot, 'index', 'sessions.jsonl');
+  const sqlitePath = path.join(dbRoot, 'index', 'context.db');
 
-  const [manifestRaw, sessionsStat, indexStat] = await Promise.all([
+  const [manifestRaw, sessionsStat, indexStat, sqliteStat] = await Promise.all([
     fs.readFile(manifestPath, 'utf8'),
     fs.stat(sessionsPath),
     fs.stat(indexPath),
+    fs.stat(sqlitePath),
   ]);
 
   const manifest = JSON.parse(manifestRaw) as { version: number; layout: string };
@@ -41,6 +44,34 @@ test('ensureContextDb initializes expected directory structure', async () => {
   assert.equal(manifest.layout, 'l0-l1-l2');
   assert.equal(sessionsStat.isDirectory(), true);
   assert.equal(indexStat.isFile(), true);
+  assert.equal(sqliteStat.isFile(), true);
+});
+
+test('contextdb cli supports index:rebuild', async () => {
+  const workspace = await makeWorkspace();
+  const session = await createSession({
+    workspaceRoot: workspace,
+    agent: 'codex-cli',
+    project: 'rex-ai-boot',
+    goal: 'rebuild index smoke test',
+  });
+
+  await appendEvent({
+    workspaceRoot: workspace,
+    sessionId: session.sessionId,
+    role: 'user',
+    kind: 'prompt',
+    text: 'Need index rebuild command',
+  });
+
+  const result = spawnSync('npx', ['tsx', 'src/contextdb/cli.ts', 'index:rebuild', '--workspace', workspace], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const payload = JSON.parse((result.stdout || '{}').trim()) as { ok?: boolean };
+  assert.equal(payload.ok, true);
 });
 
 test('createSession writes metadata and index record', async () => {
@@ -328,4 +359,131 @@ test('searchEvents, getEventById, and buildTimeline use sidecar indexes', async 
   });
   assert.ok(timeline.items.length >= 2);
   assert.ok(timeline.items.some((item) => item.itemType === 'checkpoint'));
+});
+
+test('searchEvents rebuilds sqlite sidecar when context.db is missing', async () => {
+  const workspace = await makeWorkspace();
+  const session = await createSession({
+    workspaceRoot: workspace,
+    agent: 'codex-cli',
+    project: 'rex-ai-boot',
+    goal: 'recover from missing sqlite sidecar',
+  });
+
+  await appendEvent({
+    workspaceRoot: workspace,
+    sessionId: session.sessionId,
+    role: 'assistant',
+    kind: 'response',
+    text: 'sidecar rebuild should recover this event',
+    refs: ['core.ts'],
+  });
+
+  const sqlitePath = path.join(workspace, 'memory', 'context-db', 'index', 'context.db');
+  await fs.unlink(sqlitePath);
+  const walPath = `${sqlitePath}-wal`;
+  const shmPath = `${sqlitePath}-shm`;
+  await fs.rm(walPath, { force: true });
+  await fs.rm(shmPath, { force: true });
+
+  const cli = spawnSync(
+    'npx',
+    [
+      'tsx',
+      'src/contextdb/cli.ts',
+      'search',
+      '--workspace',
+      workspace,
+      '--project',
+      'rex-ai-boot',
+      '--query',
+      'recover this event',
+      '--limit',
+      '5',
+    ],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    }
+  );
+
+  assert.equal(cli.status, 0, cli.stderr || cli.stdout);
+  const found = JSON.parse((cli.stdout || '{}').trim()) as { results?: Array<{ eventId: string }> };
+  assert.equal(Array.isArray(found.results), true);
+  assert.equal(found.results?.length, 1);
+  assert.match(found.results?.[0]?.eventId ?? '', new RegExp(`^${session.sessionId}#`));
+
+  const searchFromCore = await searchEvents({
+    workspaceRoot: workspace,
+    project: 'rex-ai-boot',
+    query: 'recover this event',
+    limit: 5,
+  });
+  assert.equal(searchFromCore.results.length, 1);
+});
+
+test('searchEvents semantic mode reranks lexical candidates and falls back safely', async () => {
+  const workspace = await makeWorkspace();
+  const session = await createSession({
+    workspaceRoot: workspace,
+    agent: 'codex-cli',
+    project: 'rex-ai-boot',
+    goal: 'semantic retrieval smoke test',
+  });
+
+  await appendEvent({
+    workspaceRoot: workspace,
+    sessionId: session.sessionId,
+    role: 'assistant',
+    kind: 'response',
+    text: 'auth issue found in login callback',
+    refs: ['auth.ts'],
+  });
+  await appendEvent({
+    workspaceRoot: workspace,
+    sessionId: session.sessionId,
+    role: 'assistant',
+    kind: 'response',
+    text: 'release notes draft for docs website',
+    refs: ['docs.md'],
+  });
+
+  const previousSemantic = process.env.CONTEXTDB_SEMANTIC;
+  const previousProvider = process.env.CONTEXTDB_SEMANTIC_PROVIDER;
+  try {
+    process.env.CONTEXTDB_SEMANTIC = '0';
+    const lexicalFallback = await searchEvents({
+      workspaceRoot: workspace,
+      project: 'rex-ai-boot',
+      query: 'issue auth',
+      kinds: ['response'],
+      semantic: true,
+      limit: 5,
+    });
+    assert.equal(lexicalFallback.results.length, 0);
+
+    process.env.CONTEXTDB_SEMANTIC = '1';
+    process.env.CONTEXTDB_SEMANTIC_PROVIDER = 'token';
+    const semantic = await searchEvents({
+      workspaceRoot: workspace,
+      project: 'rex-ai-boot',
+      query: 'issue auth',
+      kinds: ['response'],
+      semantic: true,
+      limit: 5,
+    });
+    assert.equal(semantic.results.length, 2);
+    assert.match(semantic.results[0].text, /auth issue/i);
+  } finally {
+    if (previousSemantic === undefined) {
+      delete process.env.CONTEXTDB_SEMANTIC;
+    } else {
+      process.env.CONTEXTDB_SEMANTIC = previousSemantic;
+    }
+    if (previousProvider === undefined) {
+      delete process.env.CONTEXTDB_SEMANTIC_PROVIDER;
+    } else {
+      process.env.CONTEXTDB_SEMANTIC_PROVIDER = previousProvider;
+    }
+  }
 });

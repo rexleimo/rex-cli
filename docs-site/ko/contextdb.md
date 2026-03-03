@@ -1,6 +1,6 @@
 ---
 title: ContextDB
-description: 5단계 흐름과 명령 예시.
+description: 5단계 흐름, SQLite 사이드카, 명령 예시.
 ---
 
 # ContextDB
@@ -19,6 +19,7 @@ description: 5단계 흐름과 명령 예시.
 cd mcp-server
 npm run contextdb -- init
 npm run contextdb -- context:pack --session <id> --out memory/context-db/exports/<id>-context.md
+npm run contextdb -- index:rebuild
 ```
 
 ## 컨텍스트 패킷 제어 (P0)
@@ -44,4 +45,25 @@ npm run contextdb -- context:pack \
 npm run contextdb -- search --query "auth race" --project demo --kinds response --refs auth.ts
 npm run contextdb -- timeline --session <id> --limit 30
 npm run contextdb -- event:get --id <sessionId>#<seq>
+npm run contextdb -- index:rebuild
+```
+
+- `index:rebuild`: `sessions/*` 기준으로 SQLite 사이드카 인덱스를 재생성합니다.
+
+## 선택적 시맨틱 검색 (P2)
+
+시맨틱 모드는 선택 기능이며, 사용할 수 없으면 lexical 검색으로 자동 폴백됩니다.
+
+```bash
+export CONTEXTDB_SEMANTIC=1
+export CONTEXTDB_SEMANTIC_PROVIDER=token
+npm run contextdb -- search --query "issue auth" --project demo --semantic
+```
+
+## 저장 레이아웃
+
+```text
+memory/context-db/
+  sessions/<session_id>/*        # source of truth
+  index/context.db               # SQLite sidecar (rebuildable)
 ```

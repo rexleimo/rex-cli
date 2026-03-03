@@ -162,7 +162,10 @@ one-shot 下会自动执行完整 5 步：
 ```text
 memory/context-db/
   manifest.json
+  index/context.db
   index/sessions.jsonl
+  index/events.jsonl
+  index/checkpoints.jsonl
   sessions/<session_id>/
     meta.json
     l0-summary.md
@@ -183,7 +186,19 @@ npm run contextdb -- session:new --agent claude-code --project rex-ai-boot --goa
 npm run contextdb -- event:add --session <id> --role user --text "need retry plan"
 npm run contextdb -- checkpoint --session <id> --summary "blocked by auth" --status blocked --next "wait-login|resume"
 npm run contextdb -- context:pack --session <id> --out memory/context-db/exports/<id>-context.md
+npm run contextdb -- index:rebuild
+npm run contextdb -- search --query "auth race" --project rex-ai-boot --kinds response --refs auth.ts
 ```
+
+可选语义重排（P2）：
+
+```bash
+export CONTEXTDB_SEMANTIC=1
+export CONTEXTDB_SEMANTIC_PROVIDER=token
+npm run contextdb -- search --query "issue auth" --project rex-ai-boot --semantic
+```
+
+如果语义 provider 不可用，`search --semantic` 会自动回退到 lexical 检索。
 
 ## 版本与发布
 

@@ -39,6 +39,15 @@ powershell -ExecutionPolicy Bypass -File .\\scripts\\install-browser-mcp.ps1
 
 处理：更新到最新 `main` 并重新打开 shell。
 
+新版本已统一为 `ctx-agent-core.mjs` 作为执行核心，避免 sh/mjs 双实现漂移。
+
+## `search` 结果异常为空
+
+如果 `memory/context-db/index/context.db` 丢失或过期：
+
+1. 执行 `cd mcp-server && npm run contextdb -- index:rebuild`
+2. 重新执行 `search` / `timeline` / `event:get`
+
 ## 命令没有被包装
 
 检查：

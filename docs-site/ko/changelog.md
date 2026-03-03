@@ -14,6 +14,7 @@ description: 릴리스 이력, 업그레이드 안내, 관련 문서 링크.
 
 ## 최근 버전
 
+- `Unreleased`: ContextDB SQLite 사이드카 인덱스, `index:rebuild`, 선택적 `--semantic` 검색 경로, `ctx-agent` 실행 코어 통합
 - `0.4.2` (2026-03-03): Windows 절차를 탭형 Quick Start로 통합
 - `0.4.1` (2026-03-03): Windows 가이드 페이지 및 교차 링크 추가
 - `0.4.0` (2026-03-03): Windows PowerShell 설치 스크립트 추가
