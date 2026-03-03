@@ -86,3 +86,43 @@ Use optional pacing to reduce flaky fast-action races:
 - `BROWSER_ACTION_PACING=true|false` (default: `true`)
 - `BROWSER_ACTION_MIN_MS` (default: `400`)
 - `BROWSER_ACTION_MAX_MS` (default: `1200`)
+
+## Filesystem Context DB (for Codex/Claude/Gemini)
+
+This repo now includes a lightweight filesystem context DB under `memory/context-db` to share memory across CLI tools.
+
+### Commands
+
+```bash
+cd mcp-server
+npm run contextdb -- init
+npm run contextdb -- session:new --agent claude-code --project rex-ai-boot --goal "stabilize browser automation"
+npm run contextdb -- event:add --session <session_id> --role user --text "Need retry and checkpoint strategy"
+npm run contextdb -- checkpoint --session <session_id> --summary "Auth wall found; waiting human login" --status blocked --next "wait-login|resume-run"
+npm run contextdb -- context:pack --session <session_id> --out memory/context-db/exports/<session_id>-context.md
+```
+
+### Feed context to each CLI
+
+- Claude Code:
+  ```bash
+  claude --append-system-prompt "$(cat memory/context-db/exports/<session_id>-context.md)"
+  ```
+- Gemini CLI:
+  ```bash
+  gemini -i "$(cat memory/context-db/exports/<session_id>-context.md)"
+  ```
+- Codex CLI (example pattern):
+  use the generated context packet as the first prompt in the session.
+
+### One-command launcher (shared context session)
+
+From repository root:
+
+```bash
+# Claude interactive (loads latest session context)
+scripts/ctx-agent.sh --agent claude-code --project rex-ai-boot
+
+# Gemini one-shot (auto logs prompt/response into context-db)
+scripts/ctx-agent.sh --agent gemini-cli --project rex-ai-boot --prompt "继续上一次任务，先给我下一步计划"
+```

@@ -100,6 +100,32 @@ npx skills add https://github.com/vercel-labs/skills --skill find-skills --agent
 
 重启 Codex 与 Claude Code，让新技能与工具定义加载完成。
 
+## 统一 Context DB（面向所有 CLI）
+
+为解决 Gemini CLI / Claude Code 等工具缺少“共享任务记忆”的问题，仓库新增了文件系统 context DB：
+
+- 路径：`memory/context-db/`
+- 分层：`L0 摘要` + `L1 checkpoint` + `L2 原始事件`
+- 用法：由 `mcp-server` 内的 `contextdb` CLI 统一读写
+
+示例：
+
+```bash
+cd mcp-server
+npm run contextdb -- init
+npm run contextdb -- session:new --agent gemini-cli --project rex-ai-boot --goal "持续任务上下文"
+npm run contextdb -- context:pack --session <session_id>
+```
+
+将导出的 context 包作为新会话首段上下文喂给各 CLI，可实现跨工具连续记忆。
+
+也可以直接用统一启动脚本（仓库根目录）：
+
+```bash
+scripts/ctx-agent.sh --agent claude-code --project rex-ai-boot
+scripts/ctx-agent.sh --agent gemini-cli --project rex-ai-boot --prompt "延续上一轮任务"
+```
+
 ## 参考项目
 
 - OpenClaw: https://github.com/openclaw/openclaw
