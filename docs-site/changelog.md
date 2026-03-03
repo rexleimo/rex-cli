@@ -14,7 +14,7 @@ Use this page to track what changed in `rex-ai-boot` and jump to release-related
 
 ## Recent Versions
 
-- `Unreleased`: ContextDB SQLite sidecar index, `index:rebuild`, optional `--semantic` search path, unified `ctx-agent` runtime core
+- `0.5.0` (2026-03-03): ContextDB SQLite sidecar index, `index:rebuild`, optional `--semantic` search path, unified `ctx-agent` runtime core
 - `0.4.2` (2026-03-03): merged Windows setup into tabbed Quick Start
 - `0.4.1` (2026-03-03): added dedicated Windows guide pages and cross-links
 - `0.4.0` (2026-03-03): added Windows PowerShell setup scripts
