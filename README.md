@@ -1,43 +1,43 @@
 # rex-ai-boot (AIOS)
 
-本项目是一个面向 `Codex CLI`、`Claude Code`、`Gemini CLI` 的本地 Agent 工作流仓库。  
-目标不是做一个新的聊天客户端，而是给现有 CLI 增加两件事：
+This repository provides a local-first agent workflow for `Codex CLI`, `Claude Code`, and `Gemini CLI`.
+It does not replace those clients. Instead, it adds two shared capabilities:
 
-1. 统一浏览器自动化能力（Playwright MCP，`browser_*` 工具）
-2. 跨 CLI 共享的文件系统 Context DB（可追溯会话记忆）
+1. Unified browser automation via Playwright MCP (`browser_*` tools)
+2. Cross-CLI filesystem Context DB for resumable task memory
 
-## 你最关心的点：为什么直接输入 `codex` 也会带 ContextDB？
+## Why does `codex` load ContextDB automatically?
 
-原理是 **zsh 包装函数透明接管**：
+The mechanism is **transparent zsh wrapping**:
 
-- [`scripts/contextdb-shell.zsh`](scripts/contextdb-shell.zsh) 通过 shell function 接管 `codex()`、`claude()`、`gemini()`
-- 在本仓库目录内，这些函数会调用 [`scripts/ctx-agent.sh`](scripts/ctx-agent.sh) 先处理 context，再启动原生 CLI
-- 在仓库外或管理子命令（如 `codex mcp`、`gemini hooks`）场景下，会直接透传到原命令
+- [`scripts/contextdb-shell.zsh`](scripts/contextdb-shell.zsh) defines shell functions for `codex()`, `claude()`, and `gemini()`
+- Inside this repo, those functions call [`scripts/ctx-agent.sh`](scripts/ctx-agent.sh) to prepare context before launching the original CLI
+- Outside this repo, or for management subcommands (for example `codex mcp`, `gemini hooks`), commands pass through unchanged
 
-所以你仍然输入原命令，体验上不需要改操作习惯。
+So you keep using the same command names and normal interactive flow.
 
-## 系统架构
+## Architecture
 
 ```text
 User -> codex/claude/gemini
      -> (zsh wrapper: contextdb-shell.zsh)
      -> ctx-agent.sh
         -> contextdb CLI (init/session/event/checkpoint/pack)
-        -> 启动原生 codex/claude/gemini（注入 context packet）
-     -> mcp-server/browser_* (可选，浏览器自动化)
+        -> start native codex/claude/gemini (with context packet)
+     -> mcp-server/browser_* (optional browser automation)
 ```
 
-## 目录说明
+## Repository Layout
 
-- `mcp-server/`: Playwright MCP 服务与 `contextdb` CLI 实现
-- `scripts/ctx-agent.sh`: 统一运行器（自动接入 ContextDB）
-- `scripts/contextdb-shell.zsh`: 透明接管 `codex/claude/gemini`
-- `memory/context-db/`: 会话数据（本地产物，已忽略提交）
-- `config/browser-profiles.json`: 浏览器 profile/CDP 配置
+- `mcp-server/`: Playwright MCP service and `contextdb` CLI implementation
+- `scripts/ctx-agent.sh`: Unified runner that integrates ContextDB
+- `scripts/contextdb-shell.zsh`: Transparent wrappers for `codex/claude/gemini`
+- `memory/context-db/`: Runtime session artifacts (ignored by git)
+- `config/browser-profiles.json`: Browser profile/CDP config
 
-## 快速开始
+## Quick Start
 
-### 1) 构建 MCP 与 ContextDB CLI
+### 1) Build MCP server and ContextDB CLI
 
 ```bash
 cd mcp-server
@@ -45,17 +45,17 @@ npm install
 npm run build
 ```
 
-### 2) 安装透明接管（一次即可）
+### 2) Install transparent shell integration (one-time)
 
-> 安全建议：优先手动编辑 `~/.zshrc`，并先备份。不要盲目执行会改写 shell 配置的命令。
+> Safety first: prefer manual `~/.zshrc` editing and back it up before changes.
 
-先备份：
+Backup:
 
 ```bash
 cp ~/.zshrc ~/.zshrc.bak.$(date +%Y%m%d-%H%M%S)
 ```
 
-再手动把下面这段加入 `~/.zshrc`：
+Add this block to `~/.zshrc`:
 
 ```zsh
 # >>> contextdb-shell >>>
@@ -66,17 +66,17 @@ fi
 # <<< contextdb-shell <<<
 ```
 
-加载配置：
+Reload:
 
 ```bash
 source ~/.zshrc
 ```
 
-如果仓库不在 `$HOME/cool.cnb/rex-ai-boot`，把 `ROOTPATH` 改成你的真实路径。
+If your repo path is different, set `ROOTPATH` to your actual location.
 
-可选：你也可以运行安装脚本 [`scripts/install-contextdb-shell.sh`](scripts/install-contextdb-shell.sh)，但仍建议先手动备份 `~/.zshrc`。
+Optional helper script: [`scripts/install-contextdb-shell.sh`](scripts/install-contextdb-shell.sh)
 
-### 3) 直接使用原命令
+### 3) Use original commands directly
 
 ```bash
 codex
@@ -84,24 +84,24 @@ claude
 gemini
 ```
 
-## 两种运行模式
+## Two Runtime Modes
 
-### A. 交互模式（直接 `codex` / `claude` / `gemini`）
+### A) Interactive mode (`codex` / `claude` / `gemini`)
 
-- 自动做：`init`、`session:latest/new`、`context:pack`
-- 用途：启动时自动带上历史上下文
-- 边界：不会在每一轮消息后自动写 checkpoint
+- Automatically performs: `init`, `session:latest/new`, `context:pack`
+- Best for normal interactive work with startup context resume
+- Limitation: does not auto-write checkpoint after every turn
 
-### B. One-shot 模式（推荐做全自动闭环）
+### B) One-shot mode (full automation recommended)
 
 ```bash
-scripts/ctx-agent.sh --agent codex-cli --project rex-ai-boot --prompt "继续上次任务并执行下一步"
+scripts/ctx-agent.sh --agent codex-cli --project rex-ai-boot --prompt "Continue from previous task and execute next step"
 ```
 
-one-shot 下会自动执行完整 5 步：
+In one-shot mode, all 5 steps run automatically:
 `init -> session:new/latest -> event:add -> checkpoint -> context:pack`
 
-## ContextDB 数据结构（L0/L1/L2）
+## ContextDB Layout (L0/L1/L2)
 
 ```text
 memory/context-db/
@@ -116,7 +116,7 @@ memory/context-db/
   exports/<session_id>-context.md
 ```
 
-## 常用命令
+## Common Commands
 
 ```bash
 cd mcp-server
@@ -127,7 +127,7 @@ npm run contextdb -- checkpoint --session <id> --summary "blocked by auth" --sta
 npm run contextdb -- context:pack --session <id> --out memory/context-db/exports/<id>-context.md
 ```
 
-## 开发验证
+## Verification
 
 ```bash
 cd mcp-server
@@ -136,9 +136,9 @@ npm run typecheck
 npm run build
 ```
 
-## 卸载透明接管
+## Uninstall Shell Integration
 
-手动打开 `~/.zshrc`，删除下面这个区块，再重新加载 shell：
+Open `~/.zshrc`, remove this block, then reload shell:
 
 ```zsh
 # >>> contextdb-shell >>>
@@ -146,10 +146,8 @@ npm run build
 # <<< contextdb-shell <<<
 ```
 
-然后执行：
-
 ```bash
 source ~/.zshrc
 ```
 
-删除后 `codex/claude/gemini` 会恢复原生行为。
+After removal, `codex/claude/gemini` return to native behavior.
