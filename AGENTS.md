@@ -61,3 +61,14 @@ PRs should include:
 - Never commit credentials, cookies, or personal browser profile data.
 - Prefer CDP-based profile config in `config/browser-profiles.json` for stable login reuse.
 - Preserve human-in-the-loop checks for auth walls and sensitive outbound actions.
+
+## Agent Shortcut Conventions
+- `cap` is a repository shortcut for `commit + push`.
+- Trigger: when the user message is exactly `cap`, execute this flow in the current repo.
+- Required flow:
+  1. `git status --short` and confirm there are changes.
+  2. `git add -A`.
+  3. Commit with a Conventional Commit message from current task context.
+  4. If no clear message is available, use fallback `chore: cap snapshot <YYYY-MM-DD>`.
+  5. `git push` (or set upstream once when required).
+- If there are no changes, report a no-op instead of creating an empty commit.
