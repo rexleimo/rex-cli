@@ -1,11 +1,18 @@
 ---
 title: Overview
-description: What rex-ai-boot is, why it exists, and how to use it with Codex, Claude, Gemini, and OpenCode.
+description: Upgrade your existing Codex/Claude/Gemini workflow with OpenClaw-style capabilities.
 ---
 
 # rex-ai-boot
 
-Project URL: [https://github.com/rexleimo/rex-ai-boot](https://github.com/rexleimo/rex-ai-boot)
+> Keep your current CLI workflow. Add OpenClaw-style capabilities on top of `codex`, `claude`, and `gemini`.
+
+[Start in 30 seconds](getting-started.md){ .md-button .md-button--primary }
+[Project (GitHub)](https://github.com/rexleimo/rex-ai-boot){ .md-button }
+[Blog](https://cli.rexai.top/blog/){ .md-button }
+[Friends](friends.md){ .md-button }
+
+Project URL: <https://github.com/rexleimo/rex-ai-boot>
 
 `rex-ai-boot` is a local-first workflow layer for four CLI agents:
 
@@ -19,7 +26,18 @@ It adds two practical capabilities without replacing native CLIs:
 1. **Filesystem ContextDB** for resumable memory across sessions.
 2. **Unified wrapper flow** so you still run `codex`, `claude`, or `gemini` directly.
 
-## Start In 30 Seconds (Use First, Read Later)
+## Why this is an OpenClaw-style upgrade
+
+You get the same category of outcomes:
+
+- resumable cross-session memory (ContextDB)
+- browser automation (Playwright MCP)
+- multi-CLI handoff across Codex/Claude/Gemini/OpenCode
+- reusable operational skills
+
+This is not a new chat shell. It is an upgrade layer for tools you already use.
+
+## Start in 30 seconds (use first, read later)
 
 ```bash
 git clone https://github.com/rexleimo/rex-ai-boot.git
@@ -29,11 +47,14 @@ source ~/.zshrc
 codex
 ```
 
-## What Problems It Solves
+## Immediate before/after
 
-- You can resume work with context after terminal restarts.
-- You can keep memory per project (git-root scoped).
-- You can hand off work across different CLI tools using the same context packet.
+| Scenario | Typical CLI | With rex-ai-boot |
+|---|---|---|
+| Session resume | manual recall | automatic project context |
+| Multi-CLI collaboration | state loss between tools | shared ContextDB handoff |
+| Browser operations | manual clicking | `browser_*` automation |
+| Process reuse | ad-hoc chat history | reusable skills |
 
 ## Quick Command Preview
 
@@ -49,10 +70,10 @@ scripts/ctx-agent.sh --agent codex-cli --prompt "Continue from latest checkpoint
 
 ## Read Next
 
-- [Project (GitHub)](https://github.com/rexleimo/rex-ai-boot)
 - [Quick Start](getting-started.md)
 - [Blog Site](https://cli.rexai.top/blog/)
 - [Friends](friends.md)
+- [Project (GitHub)](https://github.com/rexleimo/rex-ai-boot)
 - [Changelog](changelog.md)
 - [CLI Workflows](use-cases.md)
 - [Case Library](case-library.md)

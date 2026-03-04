@@ -23,7 +23,9 @@
       "mcp__puppeteer-stealth__browser_type",
       "mcp__puppeteer-stealth__browser_close",
       "mcp__puppeteer-stealth__browser_list_tabs",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mkdocs build:*)",
+      "Bash(pip3 install:*)"
     ]
   },
   "approvalMode": "auto",
