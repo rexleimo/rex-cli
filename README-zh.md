@@ -37,6 +37,13 @@ User -> codex/claude/gemini
 
 ## 快速开始
 
+执行 `scripts/*.sh` 或 `scripts/*.ps1` 前，先 clone 并进入仓库根目录：
+
+```bash
+git clone https://github.com/rexq57/rex-ai-boot.git
+cd rex-ai-boot
+```
+
 ### 1) 一条命令完成安装（推荐）
 
 macOS / Linux：

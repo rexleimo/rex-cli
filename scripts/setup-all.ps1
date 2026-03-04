@@ -16,7 +16,15 @@ $ScriptDir = $PSScriptRoot
 function Get-ComponentSet {
   param([string]$Raw)
 
-  $parts = $Raw.ToLower().Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+  if ([string]::IsNullOrWhiteSpace($Raw)) {
+    throw "components cannot be empty"
+  }
+
+  [string[]]$parts = @(
+    $Raw.ToLower().Split(',') |
+      ForEach-Object { $_.Trim() } |
+      Where-Object { $_ }
+  )
   if (-not $parts -or $parts.Count -eq 0) {
     throw "components cannot be empty"
   }

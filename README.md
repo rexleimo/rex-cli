@@ -37,6 +37,13 @@ User -> codex/claude/gemini
 
 ## Quick Start
 
+Before running any `scripts/*.sh` or `scripts/*.ps1` commands, clone and enter this repository:
+
+```bash
+git clone https://github.com/rexq57/rex-ai-boot.git
+cd rex-ai-boot
+```
+
 ### 1) One command setup (recommended)
 
 macOS / Linux:
