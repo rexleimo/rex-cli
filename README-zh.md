@@ -37,98 +37,60 @@ User -> codex/claude/gemini
 
 ## 快速开始
 
-### 1) 一键安装 Browser MCP（给新同学）
+### 1) 一条命令完成安装（推荐）
 
 macOS / Linux：
 
 ```bash
-scripts/install-browser-mcp.sh
-scripts/doctor-browser-mcp.sh
-```
-
-Windows（PowerShell）：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\\scripts\\install-browser-mcp.ps1
-powershell -ExecutionPolicy Bypass -File .\\scripts\\doctor-browser-mcp.ps1
-```
-
-这会自动安装浏览器运行时、构建 `mcp-server`，并输出可复制到 CLI 客户端的 MCP 配置 JSON。
-
-### 2) 手动构建 MCP 与 ContextDB CLI（可选路径）
-
-```bash
-cd mcp-server
-npm install
-npx playwright install chromium
-npm run build
-```
-
-### 3) 安装透明接管（一次即可）
-
-推荐使用安装脚本（更低学习成本）：
-
-macOS / Linux：
-
-```bash
-scripts/install-contextdb-shell.sh --mode opt-in
-scripts/doctor-contextdb-shell.sh
+scripts/setup-all.sh --components all --mode opt-in
 source ~/.zshrc
 ```
 
 Windows（PowerShell）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install-contextdb-shell.ps1 -Mode opt-in
-powershell -ExecutionPolicy Bypass -File .\scripts\doctor-contextdb-shell.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components all -Mode opt-in
 . $PROFILE
 ```
 
-安装后生命周期命令：
+这会在一次流程里安装 Browser MCP、shell 包装层、全局 skills（可选）。
+
+按需选择组件示例：
 
 ```bash
-scripts/update-contextdb-shell.sh --mode opt-in
-scripts/uninstall-contextdb-shell.sh
+# 只安装 shell 包装 + skills
+scripts/setup-all.sh --components shell,skills --mode opt-in
+
+# 只安装 browser MCP
+scripts/setup-all.sh --components browser
 ```
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\update-contextdb-shell.ps1 -Mode opt-in
-powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-contextdb-shell.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components shell,skills -Mode opt-in
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components browser
 ```
 
-仍支持手动编辑 `~/.zshrc`，但不再作为首选入门路径。
-
-### 3.1 可选：全局安装本项目 Skills
-
-这一步和包装器安装是两条线。只有你希望在其他项目也能直接用本仓库 skills 时再执行。
-
-macOS / Linux：
+### 2) 一条命令更新 / 卸载
 
 ```bash
-scripts/install-contextdb-skills.sh --client all
-scripts/doctor-contextdb-skills.sh --client all
-```
-
-Windows（PowerShell）：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install-contextdb-skills.ps1 -Client all
-powershell -ExecutionPolicy Bypass -File .\scripts\doctor-contextdb-skills.ps1 -Client all
-```
-
-Skills 生命周期命令：
-
-```bash
-scripts/update-contextdb-skills.sh --client all
-scripts/uninstall-contextdb-skills.sh --client all
+scripts/update-all.sh --components all --mode opt-in
+scripts/uninstall-all.sh --components shell,skills
 ```
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\update-contextdb-skills.ps1 -Client all
-powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-contextdb-skills.ps1 -Client all
+powershell -ExecutionPolicy Bypass -File .\scripts\update-all.ps1 -Components all -Mode opt-in
+powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-all.ps1 -Components shell,skills
 ```
 
-### 3.2 作用域控制（避免跨项目复用）
+### 3) 高级模式：分组件脚本
+
+如果你想按组件独立管理，也可以使用 `scripts/` 里的拆分脚本：
+
+- Browser MCP：`install-browser-mcp.*`、`doctor-browser-mcp.*`
+- Shell 包装：`install/update/uninstall/doctor-contextdb-shell.*`
+- 全局 Skills：`install/update/uninstall/doctor-contextdb-skills.*`
+
+### 3.1 作用域控制（避免跨项目复用）
 
 默认行为是仅在 `ROOTPATH` 仓库启用包装（`CTXDB_WRAP_MODE=repo-only`）。
 如果你希望使用其他范围，可在 `~/.zshrc` 设置：
@@ -147,7 +109,7 @@ export CTXDB_WRAP_MODE=opt-in
 touch .contextdb-enable
 ```
 
-### 3.3 Skills 作用域（重要）
+### 3.2 Skills 作用域（重要）
 
 ContextDB 包装和 CLI 的 Skills 加载是两层机制：
 

@@ -37,98 +37,60 @@ User -> codex/claude/gemini
 
 ## Quick Start
 
-### 1) One-command Browser MCP setup (for new developers)
+### 1) One command setup (recommended)
 
 macOS / Linux:
 
 ```bash
-scripts/install-browser-mcp.sh
-scripts/doctor-browser-mcp.sh
+scripts/setup-all.sh --components all --mode opt-in
+source ~/.zshrc
 ```
 
 Windows (PowerShell):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\\scripts\\install-browser-mcp.ps1
-powershell -ExecutionPolicy Bypass -File .\\scripts\\doctor-browser-mcp.ps1
-```
-
-This installs browser runtime, builds `mcp-server`, and prints MCP config JSON to copy into your CLI client.
-
-### 2) Build MCP server and ContextDB CLI (manual path)
-
-```bash
-cd mcp-server
-npm install
-npx playwright install chromium
-npm run build
-```
-
-### 3) Install transparent shell integration (one-time)
-
-Use installer scripts (recommended):
-
-macOS / Linux:
-
-```bash
-scripts/install-contextdb-shell.sh --mode opt-in
-scripts/doctor-contextdb-shell.sh
-source ~/.zshrc
-```
-
-Windows PowerShell:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install-contextdb-shell.ps1 -Mode opt-in
-powershell -ExecutionPolicy Bypass -File .\scripts\doctor-contextdb-shell.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components all -Mode opt-in
 . $PROFILE
 ```
 
-Lifecycle commands:
+This installs Browser MCP, shell wrappers, and optional global skills in one flow.
+
+Component selection examples:
 
 ```bash
-scripts/update-contextdb-shell.sh --mode opt-in
-scripts/uninstall-contextdb-shell.sh
+# only shell + skills
+scripts/setup-all.sh --components shell,skills --mode opt-in
+
+# only browser MCP
+scripts/setup-all.sh --components browser
 ```
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\update-contextdb-shell.ps1 -Mode opt-in
-powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-contextdb-shell.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components shell,skills -Mode opt-in
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components browser
 ```
 
-Manual block editing is still supported, but no longer the primary onboarding path.
-
-### 3.1 Optional: install project skills globally
-
-This is separate from wrapper install. Use it when you want this repo's skills available in other projects too.
-
-macOS / Linux:
+### 2) One command update / uninstall
 
 ```bash
-scripts/install-contextdb-skills.sh --client all
-scripts/doctor-contextdb-skills.sh --client all
-```
-
-Windows PowerShell:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install-contextdb-skills.ps1 -Client all
-powershell -ExecutionPolicy Bypass -File .\scripts\doctor-contextdb-skills.ps1 -Client all
-```
-
-Skill lifecycle commands:
-
-```bash
-scripts/update-contextdb-skills.sh --client all
-scripts/uninstall-contextdb-skills.sh --client all
+scripts/update-all.sh --components all --mode opt-in
+scripts/uninstall-all.sh --components shell,skills
 ```
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\update-contextdb-skills.ps1 -Client all
-powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-contextdb-skills.ps1 -Client all
+powershell -ExecutionPolicy Bypass -File .\scripts\update-all.ps1 -Components all -Mode opt-in
+powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-all.ps1 -Components shell,skills
 ```
 
-### 3.2 Scope control (avoid cross-project reuse)
+### 3) Advanced: component-specific scripts
+
+If you prefer explicit per-component lifecycle, use the individual scripts in `scripts/`:
+
+- Browser MCP: `install-browser-mcp.*`, `doctor-browser-mcp.*`
+- Shell wrappers: `install/update/uninstall/doctor-contextdb-shell.*`
+- Global skills: `install/update/uninstall/doctor-contextdb-skills.*`
+
+### 3.1 Scope control (avoid cross-project reuse)
 
 By default, wrappers run only in the `ROOTPATH` repository (`CTXDB_WRAP_MODE=repo-only`).
 If you want a different scope, set one of these in `~/.zshrc`:
@@ -147,7 +109,7 @@ For `opt-in`, create marker file in a project root:
 touch .contextdb-enable
 ```
 
-### 3.3 Skill scope (important)
+### 3.2 Skill scope (important)
 
 ContextDB wrapping and CLI skill loading are different layers:
 

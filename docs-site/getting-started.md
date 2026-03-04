@@ -17,6 +17,59 @@ This page combines macOS, Linux, and Windows setup into one flow. Use the OS tab
 - At least one CLI installed: `codex`, `claude`, or `gemini`
 - A git repository where you want project-scoped ContextDB memory
 
+## 0) One-command setup (recommended)
+
+=== "macOS / Linux"
+
+    ```bash
+    scripts/setup-all.sh --components all --mode opt-in
+    source ~/.zshrc
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components all -Mode opt-in
+    . $PROFILE
+    ```
+
+Component selection examples:
+
+=== "macOS / Linux"
+
+    ```bash
+    # only shell wrappers + skills
+    scripts/setup-all.sh --components shell,skills --mode opt-in
+
+    # only browser MCP
+    scripts/setup-all.sh --components browser
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components shell,skills -Mode opt-in
+    powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components browser
+    ```
+
+One-command update/uninstall:
+
+=== "macOS / Linux"
+
+    ```bash
+    scripts/update-all.sh --components all --mode opt-in
+    scripts/uninstall-all.sh --components shell,skills
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\update-all.ps1 -Components all -Mode opt-in
+    powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-all.ps1 -Components shell,skills
+    ```
+
+If you prefer component-by-component setup, continue with steps 1-8 below.
+
 ## 1) Install Browser MCP
 
 === "macOS / Linux"

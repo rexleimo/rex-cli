@@ -13,6 +13,59 @@ description: macOS, Linux, Windows를 하나의 절차로 통합하고 OS 탭으
 - `codex` / `claude` / `gemini` 중 하나
 - 프로젝트 단위 ContextDB를 사용할 대상 git 저장소
 
+## 0) 원커맨드 설치 (권장)
+
+=== "macOS / Linux"
+
+    ```bash
+    scripts/setup-all.sh --components all --mode opt-in
+    source ~/.zshrc
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components all -Mode opt-in
+    . $PROFILE
+    ```
+
+구성요소 선택 예시:
+
+=== "macOS / Linux"
+
+    ```bash
+    # shell 래퍼 + skills만 설치
+    scripts/setup-all.sh --components shell,skills --mode opt-in
+
+    # browser MCP만 설치
+    scripts/setup-all.sh --components browser
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components shell,skills -Mode opt-in
+    powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components browser
+    ```
+
+원커맨드 업데이트 / 제거:
+
+=== "macOS / Linux"
+
+    ```bash
+    scripts/update-all.sh --components all --mode opt-in
+    scripts/uninstall-all.sh --components shell,skills
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\update-all.ps1 -Components all -Mode opt-in
+    powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-all.ps1 -Components shell,skills
+    ```
+
+구성요소별 설치를 원하면 아래 1-8 단계를 계속 따라가세요.
+
 ## 1) Browser MCP 설치
 
 === "macOS / Linux"
