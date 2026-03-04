@@ -11,7 +11,8 @@ It does not replace those clients. Instead, it adds two shared capabilities:
 The mechanism is **transparent zsh wrapping**:
 
 - [`scripts/contextdb-shell.zsh`](scripts/contextdb-shell.zsh) defines shell functions for `codex()`, `claude()`, and `gemini()`
-- In any git project, those functions call [`scripts/ctx-agent.sh`](scripts/ctx-agent.sh) (from `ROOTPATH`) and use the current git root as `--workspace`
+- Those functions delegate to [`scripts/contextdb-shell-bridge.mjs`](scripts/contextdb-shell-bridge.mjs), which decides wrap vs passthrough
+- When wrapping is enabled, the bridge calls [`scripts/ctx-agent.mjs`](scripts/ctx-agent.mjs) with current git root as `--workspace`
 - Outside git projects, or for management subcommands (for example `codex mcp`, `gemini hooks`), commands pass through unchanged
 
 So you keep using the same command names and normal interactive flow.
@@ -21,7 +22,8 @@ So you keep using the same command names and normal interactive flow.
 ```text
 User -> codex/claude/gemini
      -> (zsh wrapper: contextdb-shell.zsh)
-     -> ctx-agent.sh
+     -> contextdb-shell-bridge.mjs
+     -> ctx-agent.mjs
         -> contextdb CLI (init/session/event/checkpoint/pack)
         -> start native codex/claude/gemini (with context packet)
      -> mcp-server/browser_* (optional browser automation)
@@ -30,7 +32,8 @@ User -> codex/claude/gemini
 ## Repository Layout
 
 - `mcp-server/`: Playwright MCP service and `contextdb` CLI implementation
-- `scripts/ctx-agent.sh`: Unified runner that integrates ContextDB
+- `scripts/contextdb-shell-bridge.mjs`: Cross-platform wrap/passthrough decision bridge
+- `scripts/ctx-agent.mjs`: Unified runner that integrates ContextDB
 - `scripts/contextdb-shell.zsh`: Transparent wrappers for `codex/claude/gemini`
 - `memory/context-db/`: Runtime session artifacts for this repo (ignored by git)
 - `config/browser-profiles.json`: Browser profile/CDP config

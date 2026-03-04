@@ -11,7 +11,8 @@
 原理是 **zsh 包装函数透明接管**：
 
 - [`scripts/contextdb-shell.zsh`](scripts/contextdb-shell.zsh) 通过 shell function 接管 `codex()`、`claude()`、`gemini()`
-- 在任意 git 项目里，这些函数会调用 `ROOTPATH` 下的 [`scripts/ctx-agent.sh`](scripts/ctx-agent.sh)，并把当前 git 根目录作为 `--workspace`
+- 这些函数会委托给 [`scripts/contextdb-shell-bridge.mjs`](scripts/contextdb-shell-bridge.mjs)，由 bridge 统一判断包裹或透传
+- 当满足包裹条件时，bridge 会调用 [`scripts/ctx-agent.mjs`](scripts/ctx-agent.mjs)，并把当前 git 根目录作为 `--workspace`
 - 在非 git 目录，或管理子命令（如 `codex mcp`、`gemini hooks`）场景下，会直接透传到原命令
 
 所以你仍然输入原命令，体验上不需要改操作习惯。
@@ -21,7 +22,8 @@
 ```text
 User -> codex/claude/gemini
      -> (zsh wrapper: contextdb-shell.zsh)
-     -> ctx-agent.sh
+     -> contextdb-shell-bridge.mjs
+     -> ctx-agent.mjs
         -> contextdb CLI (init/session/event/checkpoint/pack)
         -> 启动原生 codex/claude/gemini（注入 context packet）
      -> mcp-server/browser_* (可选，浏览器自动化)
@@ -30,7 +32,8 @@ User -> codex/claude/gemini
 ## 目录说明
 
 - `mcp-server/`: Playwright MCP 服务与 `contextdb` CLI 实现
-- `scripts/ctx-agent.sh`: 统一运行器（自动接入 ContextDB）
+- `scripts/contextdb-shell-bridge.mjs`: 跨平台包裹/透传决策桥
+- `scripts/ctx-agent.mjs`: 统一运行器（自动接入 ContextDB）
 - `scripts/contextdb-shell.zsh`: 透明接管 `codex/claude/gemini`
 - `memory/context-db/`: 本仓库会话数据（本地产物，已忽略提交）
 - `config/browser-profiles.json`: 浏览器 profile/CDP 配置

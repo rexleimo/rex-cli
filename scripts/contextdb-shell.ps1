@@ -2,10 +2,11 @@
 # Source this file in PowerShell profile to make codex/claude/gemini auto-load context packets.
 # Optional env vars:
 # - ROOTPATH
+# - CTXDB_SHELL_BRIDGE
 # - CTXDB_RUNNER
 # - CTXDB_REPO_NAME
-# - CTXDB_WRAP_MODE: all|repo-only|opt-in|off (default: repo-only)
-# - CTXDB_MARKER_FILE (default: .contextdb-enable)
+# - CTXDB_WRAP_MODE
+# - CTXDB_MARKER_FILE
 
 $script:CTXDB_LAST_WORKSPACE = ""
 
@@ -26,14 +27,14 @@ function Normalize-CodexHome {
   }
 }
 
-function Get-CtxRunner {
-  if ($env:CTXDB_RUNNER -and (Test-Path $env:CTXDB_RUNNER)) {
-    return $env:CTXDB_RUNNER
+function Resolve-BridgePath {
+  if ($env:CTXDB_SHELL_BRIDGE -and (Test-Path -LiteralPath $env:CTXDB_SHELL_BRIDGE)) {
+    return $env:CTXDB_SHELL_BRIDGE
   }
 
   if ($env:ROOTPATH) {
-    $candidate = Join-Path $env:ROOTPATH "scripts/ctx-agent.mjs"
-    if (Test-Path $candidate) {
+    $candidate = Join-Path $env:ROOTPATH "scripts/contextdb-shell-bridge.mjs"
+    if (Test-Path -LiteralPath $candidate) {
       return $candidate
     }
   }
@@ -41,43 +42,14 @@ function Get-CtxRunner {
   return $null
 }
 
-function Get-WorkspaceRoot {
+function Update-LastWorkspace {
   try {
     $gitRoot = (& git -C (Get-Location).Path rev-parse --show-toplevel 2>$null)
     if ($LASTEXITCODE -eq 0 -and $gitRoot) {
-      return ($gitRoot | Select-Object -First 1).Trim()
+      $script:CTXDB_LAST_WORKSPACE = ($gitRoot | Select-Object -First 1).Trim()
     }
   } catch {
-    return $null
-  }
-
-  return $null
-}
-
-function Should-Wrap-Workspace {
-  param([string]$Workspace)
-
-  $mode = if ($env:CTXDB_WRAP_MODE) { $env:CTXDB_WRAP_MODE } else { "repo-only" }
-
-  switch ($mode) {
-    "all" { return $true }
-    "repo-only" {
-      if (-not $env:ROOTPATH) { return $false }
-      try {
-        $root = (Resolve-Path $env:ROOTPATH).Path
-        return [string]::Equals($Workspace, $root, [System.StringComparison]::OrdinalIgnoreCase)
-      } catch {
-        return $false
-      }
-    }
-    "opt-in" {
-      $marker = if ($env:CTXDB_MARKER_FILE) { $env:CTXDB_MARKER_FILE } else { ".contextdb-enable" }
-      return (Test-Path (Join-Path $Workspace $marker))
-    }
-    "off" { return $false }
-    "disabled" { return $false }
-    "none" { return $false }
-    default { return $true }
+    # best effort only
   }
 }
 
@@ -97,74 +69,24 @@ function Invoke-NativeCommand {
   return $LASTEXITCODE
 }
 
-function Test-FirstArgNotInList {
-  param(
-    [string]$First,
-    [string[]]$Blocked
-  )
-
-  if (-not $First) {
-    return $true
-  }
-
-  return -not ($Blocked -contains $First)
-}
-
-function Should-Wrap-Codex {
-  param([string]$First)
-  $blocked = @("exec","review","login","logout","mcp","mcp-server","app-server","app","completion","sandbox","debug","apply","resume","fork","cloud","features","help","-h","--help","-V","--version")
-  return (Test-FirstArgNotInList -First $First -Blocked $blocked)
-}
-
-function Should-Wrap-Claude {
-  param([string]$First)
-  $blocked = @("agents","auth","doctor","install","mcp","plugin","setup-token","update","upgrade","-h","--help","-v","--version")
-  return (Test-FirstArgNotInList -First $First -Blocked $blocked)
-}
-
-function Should-Wrap-Gemini {
-  param([string]$First)
-  $blocked = @("mcp","extensions","skills","hooks","-h","--help","-v","--version")
-  return (Test-FirstArgNotInList -First $First -Blocked $blocked)
-}
-
-function Invoke-CtxOrPassthrough {
+function Invoke-BridgeOrPassthrough {
   param(
     [string]$Agent,
     [string]$Passthrough,
     [string[]]$Arguments
   )
 
-  $runner = Get-CtxRunner
-  if (-not $runner) {
+  $bridge = Resolve-BridgePath
+  if (-not $bridge) {
     return (Invoke-NativeCommand -Name $Passthrough -Arguments $Arguments)
   }
-
-  $workspace = Get-WorkspaceRoot
-  if (-not $workspace) {
-    return (Invoke-NativeCommand -Name $Passthrough -Arguments $Arguments)
-  }
-
-  if (-not (Should-Wrap-Workspace -Workspace $workspace)) {
-    return (Invoke-NativeCommand -Name $Passthrough -Arguments $Arguments)
-  }
-
-  $project = if ($env:CTXDB_REPO_NAME) { $env:CTXDB_REPO_NAME } else { Split-Path -Leaf $workspace }
-  $script:CTXDB_LAST_WORKSPACE = $workspace
 
   if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     return (Invoke-NativeCommand -Name $Passthrough -Arguments $Arguments)
   }
 
-  $nodeArgs = @(
-    $runner,
-    "--workspace", $workspace,
-    "--agent", $Agent,
-    "--project", $project,
-    "--"
-  ) + $Arguments
-
-  & node @nodeArgs
+  Update-LastWorkspace
+  & node $bridge "--agent" $Agent "--command" $Passthrough "--" @Arguments
   return $LASTEXITCODE
 }
 
@@ -172,44 +94,19 @@ function codex {
   param([Parameter(ValueFromRemainingArguments = $true)] [string[]]$Args)
 
   Normalize-CodexHome
-
-  $first = if ($Args.Count -gt 0) { $Args[0] } else { "" }
-  if (-not (Should-Wrap-Codex -First $first)) {
-    $code = Invoke-NativeCommand -Name "codex" -Arguments $Args
-    $global:LASTEXITCODE = $code
-    return
-  }
-
-  $code = Invoke-CtxOrPassthrough -Agent "codex-cli" -Passthrough "codex" -Arguments $Args
-  $global:LASTEXITCODE = $code
+  $global:LASTEXITCODE = Invoke-BridgeOrPassthrough -Agent "codex-cli" -Passthrough "codex" -Arguments $Args
 }
 
 function claude {
   param([Parameter(ValueFromRemainingArguments = $true)] [string[]]$Args)
 
-  $first = if ($Args.Count -gt 0) { $Args[0] } else { "" }
-  if (-not (Should-Wrap-Claude -First $first)) {
-    $code = Invoke-NativeCommand -Name "claude" -Arguments $Args
-    $global:LASTEXITCODE = $code
-    return
-  }
-
-  $code = Invoke-CtxOrPassthrough -Agent "claude-code" -Passthrough "claude" -Arguments $Args
-  $global:LASTEXITCODE = $code
+  $global:LASTEXITCODE = Invoke-BridgeOrPassthrough -Agent "claude-code" -Passthrough "claude" -Arguments $Args
 }
 
 function gemini {
   param([Parameter(ValueFromRemainingArguments = $true)] [string[]]$Args)
 
-  $first = if ($Args.Count -gt 0) { $Args[0] } else { "" }
-  if (-not (Should-Wrap-Gemini -First $first)) {
-    $code = Invoke-NativeCommand -Name "gemini" -Arguments $Args
-    $global:LASTEXITCODE = $code
-    return
-  }
-
-  $code = Invoke-CtxOrPassthrough -Agent "gemini-cli" -Passthrough "gemini" -Arguments $Args
-  $global:LASTEXITCODE = $code
+  $global:LASTEXITCODE = Invoke-BridgeOrPassthrough -Agent "gemini-cli" -Passthrough "gemini" -Arguments $Args
 }
 
 function aios {
