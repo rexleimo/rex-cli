@@ -8,6 +8,7 @@
 # - CTXDB_REPO_NAME: optional project name (read by bridge)
 # - CTXDB_WRAP_MODE: all|repo-only|opt-in|off (default: repo-only, read by bridge)
 # - CTXDB_MARKER_FILE: marker filename for opt-in mode (default: .contextdb-enable, read by bridge)
+# - CTXDB_AUTO_CREATE_MARKER: auto-create marker in opt-in mode (default: on, read by bridge)
 
 typeset -g CTXDB_LAST_WORKSPACE=""
 

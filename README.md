@@ -134,6 +134,14 @@ For `opt-in`, create marker file in a project root:
 touch .contextdb-enable
 ```
 
+Latest behavior:
+- In `opt-in` mode, wrapper startup auto-creates the marker by default.
+- Disable auto-create when you want strict manual opt-in:
+
+```bash
+export CTXDB_AUTO_CREATE_MARKER=0
+```
+
 ### 3.2 Skill scope (important)
 
 ContextDB wrapping and CLI skill loading are different layers:

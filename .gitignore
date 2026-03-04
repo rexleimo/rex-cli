@@ -15,6 +15,7 @@ secrets.json
 .DS_Store
 Thumbs.db
 temp/
+.contextdb-enable
 site/
 .venv-docs/
 

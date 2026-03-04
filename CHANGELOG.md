@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-03-04
+
+- fix: auto-create .contextdb-enable for opt-in wrapper mode
+
 ## [0.6.1] - 2026-03-04
 
 - fix(windows): harden browser doctor and clarify Node 20+ prerequisites

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, realpathSync } from 'node:fs';
+import { existsSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const BLOCKED_SUBCOMMANDS = {
@@ -28,6 +28,7 @@ Environment:
   CTXDB_REPO_NAME        Optional project name override
   CTXDB_WRAP_MODE        all|repo-only|opt-in|off (default: repo-only)
   CTXDB_MARKER_FILE      Marker filename for opt-in mode (default: .contextdb-enable)
+  CTXDB_AUTO_CREATE_MARKER 1/true/yes/on to auto-create marker in opt-in mode (default: on)
   CTXDB_DEBUG            1/true/yes/on to print bridge decisions`);
 }
 
@@ -169,6 +170,48 @@ function shouldDebug(env) {
   return value === '1' || value === 'true' || value === 'yes' || value === 'on';
 }
 
+function parseBoolEnv(value, defaultValue) {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return defaultValue;
+  }
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on') {
+    return true;
+  }
+  if (normalized === '0' || normalized === 'false' || normalized === 'no' || normalized === 'off') {
+    return false;
+  }
+  return defaultValue;
+}
+
+function shouldAutoCreateMarker(env) {
+  return parseBoolEnv(env.CTXDB_AUTO_CREATE_MARKER, true);
+}
+
+function tryEnsureOptInMarker(workspace, env) {
+  const marker = env.CTXDB_MARKER_FILE || '.contextdb-enable';
+  const markerPath = path.join(workspace, marker);
+
+  if (existsSync(markerPath)) {
+    return { created: false, error: '' };
+  }
+
+  if (!shouldAutoCreateMarker(env)) {
+    return { created: false, error: '' };
+  }
+
+  try {
+    writeFileSync(markerPath, '', { encoding: 'utf8', flag: 'wx' });
+    return { created: true, error: '' };
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'EEXIST') {
+      return { created: false, error: '' };
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    return { created: false, error: message };
+  }
+}
+
 function spawnInherited(command, args, cwd, env) {
   const result = spawnSync(command, args, {
     cwd,
@@ -219,6 +262,16 @@ function main(argv = process.argv.slice(2)) {
   const blockedSubcommand = isBlockedSubcommand(opts.command, firstArg);
   const runner = blockedSubcommand ? null : detectRunner(env);
   const workspace = blockedSubcommand ? '' : detectWorkspaceRoot(opts.cwd);
+  const mode = (env.CTXDB_WRAP_MODE || 'repo-only').trim().toLowerCase();
+  let markerCreated = false;
+  let markerCreateError = '';
+
+  if (!blockedSubcommand && workspace && mode === 'opt-in') {
+    const markerResult = tryEnsureOptInMarker(workspace, env);
+    markerCreated = markerResult.created;
+    markerCreateError = markerResult.error;
+  }
+
   const allowedByMode = workspace ? shouldWrapWorkspace(workspace, env) : false;
   const shouldWrap = Boolean(!blockedSubcommand && runner && workspace && allowedByMode);
 
@@ -235,6 +288,14 @@ function main(argv = process.argv.slice(2)) {
     console.error(
       `[contextdb-shell-bridge] command=${opts.command} agent=${opts.agent} decision=${reason} workspace=${workspace || '-'}`
     );
+    if (mode === 'opt-in') {
+      console.error(
+        `[contextdb-shell-bridge] opt-in marker created=${markerCreated ? 'yes' : 'no'} auto-create=${shouldAutoCreateMarker(env) ? 'on' : 'off'}`
+      );
+      if (markerCreateError) {
+        console.error(`[contextdb-shell-bridge] opt-in marker create error=${markerCreateError}`);
+      }
+    }
   }
 
   if (!shouldWrap) {

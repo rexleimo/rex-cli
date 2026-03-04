@@ -134,6 +134,14 @@ export CTXDB_WRAP_MODE=opt-in
 touch .contextdb-enable
 ```
 
+最新行为：
+- `opt-in` 模式下，包装器启动时默认会自动创建该标记文件。
+- 如果你希望保持“严格手动 opt-in”，可关闭自动创建：
+
+```bash
+export CTXDB_AUTO_CREATE_MARKER=0
+```
+
 ### 3.2 Skills 作用域（重要）
 
 ContextDB 包装和 CLI 的 Skills 加载是两层机制：
