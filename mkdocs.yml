@@ -56,51 +56,72 @@ plugins:
           site_name: rex-ai-boot 文档
           site_description: 面向 Codex CLI、Claude Code、Gemini CLI 及 OpenCode skills 同步的本地优先多 CLI 智能体工作流文档。
           nav_translations:
-            Overview: 概览
-            Project: 项目地址
             Blog: 博客
-            Friends: 友情链接
+            Getting Started: 快速开始
             Quick Start: 快速开始
-            Changelog: 更新日志
-            CLI Workflows: CLI 工作流
-            Case Library: 官方案例库
-            Architecture: 架构
-            ContextDB: ContextDB
+            Windows Guide: Windows 安装指南
             Troubleshooting: 故障排查
+            Core Features: 功能核心
+            ContextDB: ContextDB
+            Architecture: 架构
+            CLI Workflows: CLI 工作流
+            Resources: 资源
+            Case Library: 官方案例库
+            Changelog: 更新日志
+            Friends: 友情链接
+            Community: 社区
+            Post Templates: 发布模板
+            Posting Policy: 发布规范
+            External: 外部链接
+            Project: 项目地址
         - locale: ja
           name: 日本語
           build: true
           site_name: rex-ai-boot ドキュメント
           site_description: Codex CLI、Claude Code、Gemini CLI と OpenCode skills 同期向けのローカルファーストなマルチ CLI エージェント運用ドキュメント。
           nav_translations:
-            Overview: 概要
-            Project: プロジェクト
             Blog: ブログ
-            Friends: リンク集
+            Getting Started: クイックスタート
             Quick Start: クイックスタート
-            Changelog: 変更履歴
-            CLI Workflows: CLI ワークフロー
-            Case Library: 公式ケースライブラリ
-            Architecture: アーキテクチャ
-            ContextDB: ContextDB
+            Windows Guide: Windows ガイド
             Troubleshooting: トラブルシューティング
+            Core Features: コアプリ 功能
+            ContextDB: ContextDB
+            Architecture: アーキテクチャ
+            CLI Workflows: CLI ワークフロー
+            Resources: リソース
+            Case Library: 公式ケースライブラリ
+            Changelog: 変更履歴
+            Friends: リンク集
+            Community: コミュニティ
+            Post Templates: 投稿テンプレート
+            Posting Policy: 投稿ポリシー
+            External: 外部リンク
+            Project: プロジェクト
         - locale: ko
           name: 한국어
           build: true
           site_name: rex-ai-boot 문서
           site_description: Codex CLI, Claude Code, Gemini CLI와 OpenCode skills 동기화를 위한 로컬 우선 멀티 CLI 에이전트 워크플로 문서.
           nav_translations:
-            Overview: 개요
-            Project: 프로젝트
             Blog: 블로그
-            Friends: 추천 링크
+            Getting Started: 시작하기
             Quick Start: 빠른 시작
-            Changelog: 변경 로그
-            CLI Workflows: CLI 워크플로
-            Case Library: 공식 사례 라이브러리
-            Architecture: 아키텍처
-            ContextDB: ContextDB
+            Windows Guide: Windows 가이드
             Troubleshooting: 문제 해결
+            Core Features: 핵심 기능
+            ContextDB: ContextDB
+            Architecture: 아키텍처
+            CLI Workflows: CLI 워크플로
+            Resources: 리소스
+            Case Library: 공식 사례 라이브러리
+            Changelog: 변경 로그
+            Friends: 추천 링크
+            Community: 커뮤니티
+            Post Templates: 게시물 템플릿
+            Posting Policy: 게시 정책
+            External: 외부 링크
+            Project: 프로젝트
 
 extra:
   links:
@@ -125,14 +146,21 @@ extra_css:
   - assets/custom.css
 
 nav:
-  - Overview: index.md
   - Blog: https://cli.rexai.top/blog/
-  - Friends: friends.md
-  - Project: https://github.com/rexleimo/rex-ai-boot
-  - Quick Start: getting-started.md
-  - Changelog: changelog.md
-  - CLI Workflows: use-cases.md
-  - Case Library: case-library.md
-  - Architecture: architecture.md
-  - ContextDB: contextdb.md
-  - Troubleshooting: troubleshooting.md
+  - Getting Started:
+      - Quick Start: getting-started.md
+      - Windows Guide: windows-guide.md
+      - Troubleshooting: troubleshooting.md
+  - Core Features:
+      - ContextDB: contextdb.md
+      - Architecture: architecture.md
+      - CLI Workflows: use-cases.md
+  - Resources:
+      - Case Library: case-library.md
+      - Changelog: changelog.md
+      - Friends: friends.md
+  - Community:
+      - Post Templates: community/post-templates.md
+      - Posting Policy: community/posting-policy.md
+  - External:
+      - Project: https://github.com/rexleimo/rex-ai-boot
