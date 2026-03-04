@@ -55,6 +55,7 @@ plugins:
           site_name: rex-ai-boot 博客
           site_description: 面向 rex-ai-boot 生态的增长与工程博客。
           nav_translations:
+            Docs Home: 文档首页
             Blog Home: 博客首页
             Posts: 文章列表
         - locale: ja
@@ -63,6 +64,7 @@ plugins:
           site_name: rex-ai-boot ブログ
           site_description: rex-ai-boot エコシステム向けの成長・技術ブログ。
           nav_translations:
+            Docs Home: ドキュメントホーム
             Blog Home: ブログホーム
             Posts: 記事一覧
         - locale: ko
@@ -71,6 +73,7 @@ plugins:
           site_name: rex-ai-boot 블로그
           site_description: rex-ai-boot 생태계를 위한 성장/엔지니어링 블로그.
           nav_translations:
+            Docs Home: 문서 홈
             Blog Home: 블로그 홈
             Posts: 글 목록
 
@@ -88,6 +91,7 @@ extra_css:
   - assets/custom.css
 
 nav:
+  - Docs Home: https://cli.rexai.top/
   - Blog Home: index.md
   - Posts:
       - Launch Post: launch-post.md

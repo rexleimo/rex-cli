@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-03-04
+
+- docs(site): wire docs/blog nav both ways and simplify blog home footer sections
+
 ## [0.5.2] - 2026-03-03
 
 - docs(site): move rexai links to global footer navigation

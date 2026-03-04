@@ -56,6 +56,7 @@ plugins:
           site_description: 面向 Codex CLI、Claude Code、Gemini CLI 的本地优先多 CLI 智能体工作流文档。
           nav_translations:
             Overview: 概览
+            Blog: 博客
             Quick Start: 快速开始
             Changelog: 更新日志
             CLI Workflows: CLI 工作流
@@ -69,6 +70,7 @@ plugins:
           site_description: Codex CLI、Claude Code、Gemini CLI 向けのローカルファーストなマルチ CLI エージェント運用ドキュメント。
           nav_translations:
             Overview: 概要
+            Blog: ブログ
             Quick Start: クイックスタート
             Changelog: 変更履歴
             CLI Workflows: CLI ワークフロー
@@ -82,6 +84,7 @@ plugins:
           site_description: Codex CLI, Claude Code, Gemini CLI를 위한 로컬 우선 멀티 CLI 에이전트 워크플로 문서.
           nav_translations:
             Overview: 개요
+            Blog: 블로그
             Quick Start: 빠른 시작
             Changelog: 변경 로그
             CLI Workflows: CLI 워크플로
@@ -113,6 +116,7 @@ extra_css:
 
 nav:
   - Overview: index.md
+  - Blog: https://cli.rexai.top/blog/
   - Quick Start: getting-started.md
   - Changelog: changelog.md
   - CLI Workflows: use-cases.md
