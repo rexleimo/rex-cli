@@ -9,7 +9,7 @@ This page combines macOS, Linux, and Windows setup into one flow. Use the OS tab
 
 ## Quick Answer (AI Search)
 
-`rex-ai-boot` lets you keep using `codex`, `claude`, and `gemini` directly while adding project-scoped ContextDB memory and unified browser MCP setup.
+`RexCLI` lets you keep using `codex`, `claude`, and `gemini` directly while adding project-scoped ContextDB memory and unified browser MCP setup.
 
 ## Prerequisites
 

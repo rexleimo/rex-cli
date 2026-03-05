@@ -1,4 +1,4 @@
-# rex-ai-boot (AIOS)
+# RexCLI (AIOS)
 
 This repository provides a local-first agent workflow for `Codex CLI`, `Claude Code`, and `Gemini CLI`.
 It does not replace those clients. Instead, it adds two shared capabilities:
@@ -10,7 +10,7 @@ It does not replace those clients. Instead, it adds two shared capabilities:
 
 Key links:
 
-- Project (GitHub): `https://github.com/rexleimo/rex-ai-boot`
+- Project (GitHub): `https://github.com/rexleimo/rex-cli`
 - Docs: `https://cli.rexai.top`
 - Blog: `https://cli.rexai.top/blog/`
 - Case Library: `https://cli.rexai.top/case-library/`
@@ -19,8 +19,8 @@ Key links:
 30-second setup (macOS / Linux):
 
 ```bash
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 scripts/setup-all.sh --components all --mode opt-in
 source ~/.zshrc
 codex
@@ -29,8 +29,8 @@ codex
 30-second setup (Windows PowerShell):
 
 ```powershell
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components all -Mode opt-in
 . $PROFILE
 codex
@@ -80,8 +80,8 @@ User -> codex/claude/gemini
 Before running any `scripts/*.sh` or `scripts/*.ps1` commands, clone and enter this repository:
 
 ```bash
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 ```
 
 ## Official Case Library
@@ -151,7 +151,7 @@ By default, wrappers run only in the `ROOTPATH` repository (`CTXDB_WRAP_MODE=rep
 If you want a different scope, set one of these in `~/.zshrc`:
 
 ```zsh
-# only enable in rex-ai-boot itself
+# only enable in RexCLI itself
 export CTXDB_WRAP_MODE=repo-only
 
 # or: only enable in repos that contain .contextdb-enable
@@ -209,7 +209,7 @@ After setup, the same behavior works in other git repositories too (they write t
 ### B) One-shot mode (full automation recommended)
 
 ```bash
-scripts/ctx-agent.sh --agent codex-cli --project rex-ai-boot --prompt "Continue from previous task and execute next step"
+scripts/ctx-agent.sh --agent codex-cli --project RexCLI --prompt "Continue from previous task and execute next step"
 ```
 
 In one-shot mode, all 5 steps run automatically:
@@ -240,12 +240,12 @@ In global mode, this structure is created per project under that project's git r
 ```bash
 cd mcp-server
 npm run contextdb -- init
-npm run contextdb -- session:new --agent claude-code --project rex-ai-boot --goal "stabilize flow"
+npm run contextdb -- session:new --agent claude-code --project RexCLI --goal "stabilize flow"
 npm run contextdb -- event:add --session <id> --role user --text "need retry plan"
 npm run contextdb -- checkpoint --session <id> --summary "blocked by auth" --status blocked --next "wait-login|resume"
 npm run contextdb -- context:pack --session <id> --out memory/context-db/exports/<id>-context.md
 npm run contextdb -- index:rebuild
-npm run contextdb -- search --query "auth race" --project rex-ai-boot --kinds response --refs auth.ts
+npm run contextdb -- search --query "auth race" --project RexCLI --kinds response --refs auth.ts
 ```
 
 Optional semantic rerank (P2):
@@ -253,7 +253,7 @@ Optional semantic rerank (P2):
 ```bash
 export CONTEXTDB_SEMANTIC=1
 export CONTEXTDB_SEMANTIC_PROVIDER=token
-npm run contextdb -- search --query "issue auth" --project rex-ai-boot --semantic
+npm run contextdb -- search --query "issue auth" --project RexCLI --semantic
 ```
 
 Unknown or unavailable providers fall back to lexical search automatically.

@@ -3,18 +3,18 @@ title: Overview
 description: Upgrade your existing Codex/Claude/Gemini workflow with OpenClaw-style capabilities.
 ---
 
-# rex-ai-boot
+# RexCLI
 
 > Keep your current CLI workflow. Add OpenClaw-style capabilities on top of `codex`, `claude`, and `gemini`.
 
 [Start in 30 seconds](getting-started.md){ .md-button .md-button--primary }
-[Project (GitHub)](https://github.com/rexleimo/rex-ai-boot){ .md-button }
+[Project (GitHub)](https://github.com/rexleimo/rex-cli){ .md-button }
 [Blog](https://cli.rexai.top/blog/){ .md-button }
 [Friends](friends.md){ .md-button }
 
-Project URL: <https://github.com/rexleimo/rex-ai-boot>
+Project URL: <https://github.com/rexleimo/rex-cli>
 
-`rex-ai-boot` is a local-first workflow layer for four CLI agents:
+`RexCLI` is a local-first workflow layer for four CLI agents:
 
 - Codex CLI
 - Claude Code
@@ -40,8 +40,8 @@ This is not a new chat shell. It is an upgrade layer for tools you already use.
 ## Start in 30 seconds (use first, read later)
 
 ```bash
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 scripts/setup-all.sh --components all --mode opt-in
 source ~/.zshrc
 codex
@@ -49,7 +49,7 @@ codex
 
 ## Immediate before/after
 
-| Scenario | Typical CLI | With rex-ai-boot |
+| Scenario | Typical CLI | With RexCLI |
 |---|---|---|
 | Session resume | manual recall | automatic project context |
 | Multi-CLI collaboration | state loss between tools | shared ContextDB handoff |
@@ -73,7 +73,7 @@ scripts/ctx-agent.sh --agent codex-cli --prompt "Continue from latest checkpoint
 - [Quick Start](getting-started.md)
 - [Blog Site](https://cli.rexai.top/blog/)
 - [Friends](friends.md)
-- [Project (GitHub)](https://github.com/rexleimo/rex-ai-boot)
+- [Project (GitHub)](https://github.com/rexleimo/rex-cli)
 - [Changelog](changelog.md)
 - [CLI Workflows](use-cases.md)
 - [Case Library](case-library.md)

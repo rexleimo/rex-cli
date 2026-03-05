@@ -5,12 +5,12 @@ description: 版本历史、升级说明与文档变更入口。
 
 # 更新日志
 
-本页用于追踪 `rex-ai-boot` 的版本变化，并快速跳转到相关文档。
+本页用于追踪 `RexCLI` 的版本变化，并快速跳转到相关文档。
 
 ## 官方发布记录
 
-- GitHub 变更文件：[CHANGELOG.md](https://github.com/rexleimo/rex-ai-boot/blob/main/CHANGELOG.md)
-- GitHub Releases：[releases](https://github.com/rexleimo/rex-ai-boot/releases)
+- GitHub 变更文件：[CHANGELOG.md](https://github.com/rexleimo/rex-cli/blob/main/CHANGELOG.md)
+- GitHub Releases：[releases](https://github.com/rexleimo/rex-cli/releases)
 
 ## 最近版本
 

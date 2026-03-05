@@ -7,7 +7,7 @@ description: Partner and ecosystem links for quick discovery.
 
 Useful links across the RexAI ecosystem:
 
-- [rex-ai-boot GitHub](https://github.com/rexleimo/rex-ai-boot)
+- [RexCLI GitHub](https://github.com/rexleimo/rex-cli)
 - [RexAI Docs Home](https://cli.rexai.top)
 - [RexAI Blog](https://cli.rexai.top/blog/)
 - [RexOS Agent OS](https://os.rexai.top)

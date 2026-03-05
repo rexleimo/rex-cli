@@ -1,13 +1,13 @@
 ---
 title: 개요
-description: rex-ai-boot 프로젝트 소개와 핵심 기능.
+description: RexCLI 프로젝트 소개와 핵심 기능.
 ---
 
-# rex-ai-boot 문서
+# RexCLI 문서
 
-프로젝트 URL: [https://github.com/rexleimo/rex-ai-boot](https://github.com/rexleimo/rex-ai-boot)
+프로젝트 URL: [https://github.com/rexleimo/rex-cli](https://github.com/rexleimo/rex-cli)
 
-`rex-ai-boot`는 다음 CLI를 위한 로컬 워크플로 레이어입니다.
+`RexCLI`는 다음 CLI를 위한 로컬 워크플로 레이어입니다.
 
 - Codex CLI
 - Claude Code
@@ -22,8 +22,8 @@ description: rex-ai-boot 프로젝트 소개와 핵심 기능.
 ## 30초 시작 (먼저 사용)
 
 ```bash
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 scripts/setup-all.sh --components all --mode opt-in
 source ~/.zshrc
 codex
@@ -39,7 +39,7 @@ gemini
 
 ## 다음 읽기
 
-- [프로젝트(GitHub)](https://github.com/rexleimo/rex-ai-boot)
+- [프로젝트(GitHub)](https://github.com/rexleimo/rex-cli)
 - [빠른 시작](getting-started.md)
 - [블로그 사이트](https://cli.rexai.top/blog/ko/)
 - [추천 링크](friends.md)

@@ -1,11 +1,11 @@
 ---
 title: Case Library
-description: Official reproducible scenarios that show what rex-ai-boot can do in real workflows.
+description: Official reproducible scenarios that show what RexCLI can do in real workflows.
 ---
 
 # Official Case Library
 
-This page is the canonical capability map for `rex-ai-boot`.
+This page is the canonical capability map for `RexCLI`.
 
 Each case includes:
 
@@ -120,7 +120,7 @@ You need one command to produce an auditable record (`init -> session -> event -
 **Run**
 
 ```bash
-scripts/ctx-agent.sh --agent codex-cli --project rex-ai-boot --prompt "Continue from latest checkpoint and execute next step"
+scripts/ctx-agent.sh --agent codex-cli --project RexCLI --prompt "Continue from latest checkpoint and execute next step"
 ```
 
 **Evidence**

@@ -1,11 +1,11 @@
 ---
 title: 공식 사례 라이브러리
-description: rex-ai-boot로 실제로 무엇을 할 수 있는지 재현 가능한 명령 기준으로 정리.
+description: RexCLI로 실제로 무엇을 할 수 있는지 재현 가능한 명령 기준으로 정리.
 ---
 
 # 공식 사례 라이브러리
 
-이 페이지는 `rex-ai-boot`의 대표 운영 시나리오 모음입니다.
+이 페이지는 `RexCLI`의 대표 운영 시나리오 모음입니다.
 
 각 사례는 다음 3가지를 포함합니다.
 
@@ -49,7 +49,7 @@ scripts/ctx-agent.sh --agent gemini-cli --prompt "리스크와 테스트 누락 
 ## 사례 5: one-shot 감사 가능한 실행 체인
 
 ```bash
-scripts/ctx-agent.sh --agent codex-cli --project rex-ai-boot --prompt "최신 checkpoint에서 다음 작업 실행"
+scripts/ctx-agent.sh --agent codex-cli --project RexCLI --prompt "최신 checkpoint에서 다음 작업 실행"
 ```
 
 ## 사례 6: Skills 라이프사이클 운영

@@ -1,11 +1,11 @@
 ---
 title: 公式ケースライブラリ
-description: rex-ai-boot で実行できる代表シナリオを再現可能なコマンド付きで整理。
+description: RexCLI で実行できる代表シナリオを再現可能なコマンド付きで整理。
 ---
 
 # 公式ケースライブラリ
 
-このページは `rex-ai-boot` の実運用ケース集です。
+このページは `RexCLI` の実運用ケース集です。
 
 各ケースは次の 3 点で構成します。
 
@@ -49,7 +49,7 @@ scripts/ctx-agent.sh --agent gemini-cli --prompt "リスクとテスト不足を
 ## ケース 5: one-shot 監査可能フロー
 
 ```bash
-scripts/ctx-agent.sh --agent codex-cli --project rex-ai-boot --prompt "最新 checkpoint から次を実行"
+scripts/ctx-agent.sh --agent codex-cli --project RexCLI --prompt "最新 checkpoint から次を実行"
 ```
 
 ## ケース 6: Skills ライフサイクル運用

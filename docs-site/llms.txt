@@ -1,4 +1,4 @@
-# rex-ai-boot
+# RexCLI
 
 > Local-first multi-CLI agent workflow docs for Codex CLI, Claude Code, Gemini CLI, and OpenCode.
 

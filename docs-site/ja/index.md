@@ -1,13 +1,13 @@
 ---
 title: 概要
-description: rex-ai-boot の目的と主要機能。
+description: RexCLI の目的と主要機能。
 ---
 
-# rex-ai-boot ドキュメント
+# RexCLI ドキュメント
 
-プロジェクト URL: [https://github.com/rexleimo/rex-ai-boot](https://github.com/rexleimo/rex-ai-boot)
+プロジェクト URL: [https://github.com/rexleimo/rex-cli](https://github.com/rexleimo/rex-cli)
 
-`rex-ai-boot` は次の CLI 向けローカルワークフローレイヤーです。
+`RexCLI` は次の CLI 向けローカルワークフローレイヤーです。
 
 - Codex CLI
 - Claude Code
@@ -22,8 +22,8 @@ description: rex-ai-boot の目的と主要機能。
 ## 30 秒で開始（まず使う）
 
 ```bash
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 scripts/setup-all.sh --components all --mode opt-in
 source ~/.zshrc
 codex
@@ -39,7 +39,7 @@ gemini
 
 ## 次に読む
 
-- [プロジェクト（GitHub）](https://github.com/rexleimo/rex-ai-boot)
+- [プロジェクト（GitHub）](https://github.com/rexleimo/rex-cli)
 - [クイックスタート](getting-started.md)
 - [ブログサイト](https://cli.rexai.top/blog/ja/)
 - [リンク集](friends.md)

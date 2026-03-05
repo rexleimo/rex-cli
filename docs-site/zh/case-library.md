@@ -1,11 +1,11 @@
 ---
 title: 官方案例库
-description: 用可复现命令说明 rex-ai-boot 在真实场景里能做什么。
+description: 用可复现命令说明 RexCLI 在真实场景里能做什么。
 ---
 
 # 官方案例库
 
-这页是 `rex-ai-boot` 的能力样例总览。
+这页是 `RexCLI` 的能力样例总览。
 
 每个案例都包含：
 
@@ -68,7 +68,7 @@ browser_auth_check {}
 ## 案例 5：one-shot 审计闭环
 
 ```bash
-scripts/ctx-agent.sh --agent codex-cli --project rex-ai-boot --prompt "继续最新 checkpoint 并执行下一步"
+scripts/ctx-agent.sh --agent codex-cli --project RexCLI --prompt "继续最新 checkpoint 并执行下一步"
 ```
 
 证据：`memory/context-db/index/checkpoints.jsonl` 与 `exports/` 有新记录。

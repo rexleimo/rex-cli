@@ -1,4 +1,4 @@
-# rex-ai-boot (AIOS)
+# RexCLI (AIOS)
 
 本项目是一个面向 `Codex CLI`、`Claude Code`、`Gemini CLI` 的本地 Agent 工作流仓库。  
 目标不是做一个新的聊天客户端，而是给现有 CLI 增加两件事：
@@ -10,7 +10,7 @@
 
 关键入口：
 
-- 项目地址（GitHub）：`https://github.com/rexleimo/rex-ai-boot`
+- 项目地址（GitHub）：`https://github.com/rexleimo/rex-cli`
 - 文档站：`https://cli.rexai.top`
 - 博客：`https://cli.rexai.top/blog/`
 - 官方案例库：`https://cli.rexai.top/case-library/`
@@ -19,8 +19,8 @@
 30 秒上手（macOS / Linux）：
 
 ```bash
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 scripts/setup-all.sh --components all --mode opt-in
 source ~/.zshrc
 codex
@@ -29,8 +29,8 @@ codex
 30 秒上手（Windows PowerShell）：
 
 ```powershell
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components all -Mode opt-in
 . $PROFILE
 codex
@@ -80,8 +80,8 @@ User -> codex/claude/gemini
 执行 `scripts/*.sh` 或 `scripts/*.ps1` 前，先 clone 并进入仓库根目录：
 
 ```bash
-git clone https://github.com/rexleimo/rex-ai-boot.git
-cd rex-ai-boot
+git clone https://github.com/rexleimo/rex-cli.git
+cd rex-cli
 ```
 
 ## 官方案例库
@@ -151,7 +151,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-all.ps1 -Components
 如果你希望使用其他范围，可在 `~/.zshrc` 设置：
 
 ```zsh
-# 只在 rex-ai-boot 项目启用
+# 只在 RexCLI 项目启用
 export CTXDB_WRAP_MODE=repo-only
 
 # 或：只有带 .contextdb-enable 标记文件的项目才启用
@@ -209,7 +209,7 @@ PowerShell 包装入口是 `scripts/contextdb-shell.ps1`，底层跨平台运行
 ### B. One-shot 模式（推荐做全自动闭环）
 
 ```bash
-scripts/ctx-agent.sh --agent codex-cli --project rex-ai-boot --prompt "继续上次任务并执行下一步"
+scripts/ctx-agent.sh --agent codex-cli --project RexCLI --prompt "继续上次任务并执行下一步"
 ```
 
 one-shot 下会自动执行完整 5 步：
@@ -240,12 +240,12 @@ memory/context-db/
 ```bash
 cd mcp-server
 npm run contextdb -- init
-npm run contextdb -- session:new --agent claude-code --project rex-ai-boot --goal "stabilize flow"
+npm run contextdb -- session:new --agent claude-code --project RexCLI --goal "stabilize flow"
 npm run contextdb -- event:add --session <id> --role user --text "need retry plan"
 npm run contextdb -- checkpoint --session <id> --summary "blocked by auth" --status blocked --next "wait-login|resume"
 npm run contextdb -- context:pack --session <id> --out memory/context-db/exports/<id>-context.md
 npm run contextdb -- index:rebuild
-npm run contextdb -- search --query "auth race" --project rex-ai-boot --kinds response --refs auth.ts
+npm run contextdb -- search --query "auth race" --project RexCLI --kinds response --refs auth.ts
 ```
 
 可选语义重排（P2）：
@@ -253,7 +253,7 @@ npm run contextdb -- search --query "auth race" --project rex-ai-boot --kinds re
 ```bash
 export CONTEXTDB_SEMANTIC=1
 export CONTEXTDB_SEMANTIC_PROVIDER=token
-npm run contextdb -- search --query "issue auth" --project rex-ai-boot --semantic
+npm run contextdb -- search --query "issue auth" --project RexCLI --semantic
 ```
 
 未知或不可用 provider 会自动回退到 lexical 检索。

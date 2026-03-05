@@ -5,12 +5,12 @@ description: 릴리스 이력, 업그레이드 안내, 관련 문서 링크.
 
 # 변경 로그
 
-이 페이지에서 `rex-ai-boot` 변경 이력을 확인하고 관련 문서로 이동할 수 있습니다.
+이 페이지에서 `RexCLI` 변경 이력을 확인하고 관련 문서로 이동할 수 있습니다.
 
 ## 공식 릴리스 이력
 
-- GitHub 변경 파일: [CHANGELOG.md](https://github.com/rexleimo/rex-ai-boot/blob/main/CHANGELOG.md)
-- GitHub Releases: [releases](https://github.com/rexleimo/rex-ai-boot/releases)
+- GitHub 변경 파일: [CHANGELOG.md](https://github.com/rexleimo/rex-cli/blob/main/CHANGELOG.md)
+- GitHub Releases: [releases](https://github.com/rexleimo/rex-cli/releases)
 
 ## 최근 버전
 

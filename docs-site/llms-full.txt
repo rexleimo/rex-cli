@@ -1,4 +1,4 @@
-# rex-ai-boot full index
+# RexCLI full index
 
 ## Overview
 - https://cli.rexai.top/
@@ -13,8 +13,8 @@
 
 ## Releases
 - https://cli.rexai.top/changelog/
-- https://github.com/rexleimo/rex-ai-boot/blob/main/CHANGELOG.md
-- https://github.com/rexleimo/rex-ai-boot/releases
+- https://github.com/rexleimo/rex-cli/blob/main/CHANGELOG.md
+- https://github.com/rexleimo/rex-cli/releases
 
 ## Blog
 - https://cli.rexai.top/blog/

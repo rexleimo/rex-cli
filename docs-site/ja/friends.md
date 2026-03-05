@@ -7,7 +7,7 @@ description: RexAI エコシステムへの主要リンク。
 
 RexAI エコシステムの主要リンク:
 
-- [rex-ai-boot GitHub リポジトリ](https://github.com/rexleimo/rex-ai-boot)
+- [RexCLI GitHub リポジトリ](https://github.com/rexleimo/rex-cli)
 - [RexAI ドキュメント](https://cli.rexai.top)
 - [RexAI ブログ](https://cli.rexai.top/blog/ja/)
 - [RexOS Agent OS](https://os.rexai.top)

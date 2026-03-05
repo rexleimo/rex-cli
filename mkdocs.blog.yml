@@ -1,9 +1,9 @@
-site_name: rex-ai-boot Blog
+site_name: RexCLI Blog
 site_url: https://cli.rexai.top/blog/
-site_description: Growth and engineering blog for the rex-ai-boot ecosystem.
+site_description: Growth and engineering blog for the RexCLI ecosystem.
 site_author: RexAI
-repo_url: https://github.com/rexleimo/rex-ai-boot
-repo_name: rexleimo/rex-ai-boot
+repo_url: https://github.com/rexleimo/rex-cli
+repo_name: rexleimo/rex-cli
 
 docs_dir: blog-site
 site_dir: site/blog
@@ -48,13 +48,13 @@ plugins:
           name: English
           default: true
           build: true
-          site_name: rex-ai-boot Blog
-          site_description: Growth and engineering blog for the rex-ai-boot ecosystem.
+          site_name: RexCLI Blog
+          site_description: Growth and engineering blog for the RexCLI ecosystem.
         - locale: zh
           name: 简体中文
           build: true
-          site_name: rex-ai-boot 博客
-          site_description: 面向 rex-ai-boot 生态的增长与工程博客。
+          site_name: RexCLI 博客
+          site_description: 面向 RexCLI 生态的增长与工程博客。
           nav_translations:
             Docs Home: 文档首页
             Blog Home: 博客首页
@@ -62,8 +62,8 @@ plugins:
         - locale: ja
           name: 日本語
           build: true
-          site_name: rex-ai-boot ブログ
-          site_description: rex-ai-boot エコシステム向けの成長・技術ブログ。
+          site_name: RexCLI ブログ
+          site_description: RexCLI エコシステム向けの成長・技術ブログ。
           nav_translations:
             Docs Home: ドキュメントホーム
             Blog Home: ブログホーム
@@ -71,8 +71,8 @@ plugins:
         - locale: ko
           name: 한국어
           build: true
-          site_name: rex-ai-boot 블로그
-          site_description: rex-ai-boot 생태계를 위한 성장/엔지니어링 블로그.
+          site_name: RexCLI 블로그
+          site_description: RexCLI 생태계를 위한 성장/엔지니어링 블로그.
           nav_translations:
             Docs Home: 문서 홈
             Blog Home: 블로그 홈
