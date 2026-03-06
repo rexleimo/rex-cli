@@ -48,9 +48,6 @@ $BeginMark
 # ContextDB transparent CLI wrappers (codex/claude/gemini, PowerShell)
 if (-not `$env:ROOTPATH) { `$env:ROOTPATH = "$RootDir" }
 if (-not `$env:CTXDB_WRAP_MODE) { `$env:CTXDB_WRAP_MODE = "$Mode" }
-if (`$env:CODEX_HOME -and -not [System.IO.Path]::IsPathRooted(`$env:CODEX_HOME)) {
-  `$env:CODEX_HOME = Join-Path `$HOME ".codex"
-}
 `$ctxShell = Join-Path `$env:ROOTPATH "scripts/contextdb-shell.ps1"
 if (Test-Path `$ctxShell) {
   . `$ctxShell

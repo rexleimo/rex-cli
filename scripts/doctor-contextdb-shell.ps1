@@ -28,7 +28,7 @@ Write-Host "CODEX_HOME: $codexHome"
 
 if ($env:CODEX_HOME) {
   if (-not [System.IO.Path]::IsPathRooted($env:CODEX_HOME)) {
-    Write-Host "[warn] CODEX_HOME is relative ($($env:CODEX_HOME)); recommend: `$env:CODEX_HOME = Join-Path `$HOME '.codex'"
+    Write-Host "[warn] CODEX_HOME is relative ($($env:CODEX_HOME)); wrappers resolve it against current working directory at runtime"
   } elseif (-not (Test-Path $env:CODEX_HOME)) {
     Write-Host "[warn] CODEX_HOME directory does not exist ($($env:CODEX_HOME))"
   } else {

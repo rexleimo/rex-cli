@@ -31,6 +31,7 @@ scripts/ctx-agent.sh --agent gemini-cli --project rex-cli --prompt "基于已有
 - Disable auto bootstrap for current run: `--no-bootstrap`
 - Disable checkpoint (rare): `--no-checkpoint`
 - Disable auto bootstrap globally: `export AIOS_BOOTSTRAP_AUTO=0`
+- `CODEX_HOME` can be relative; wrappers normalize it against current working directory at runtime.
 
 Bootstrap note:
 - On first run in a workspace, `ctx-agent` may auto-create `tasks/pending/task_<timestamp>_bootstrap_guidelines/*` and `tasks/.current-task` if both are empty.

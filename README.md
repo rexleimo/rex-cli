@@ -221,7 +221,11 @@ Root cause:
 - `mcp-server/node_modules/better-sqlite3` is a native addon and must match that Node ABI.
 - A common case is running `codex` in a Node 22 project while `aios/mcp-server` dependencies were installed under Node 20.
 
-Fix:
+Current behavior:
+- The wrapper auto-detects this mismatch and retries once after running `npm rebuild better-sqlite3`.
+- Set `CTXDB_AUTO_REBUILD_NATIVE=0` if you want strict fail-fast behavior.
+
+Manual fix (if auto-rebuild fails):
 
 ```bash
 cd "$ROOTPATH/mcp-server"
@@ -250,7 +254,7 @@ ContextDB wrapping and CLI skill loading are different layers:
 - Skill installers skip existing same-name targets by default; use `--force` / `-Force` only when you intentionally replace them.
 - Skills installed in `~/.codex/skills`, `~/.claude/skills`, `~/.gemini/skills`, or `~/.config/opencode/skills` are global.
 - Project-only skills should live in `<repo>/.codex/skills` or `<repo>/.claude/skills`.
-- Keep `CODEX_HOME` as an absolute home path (recommended: `~/.codex`). Do not set `CODEX_HOME=.codex`.
+- `CODEX_HOME` can be relative (wrappers resolve it against current working directory at runtime), but absolute paths are more predictable for global setups.
 
 If you don't want cross-project skill reuse, keep custom skills in repo-local folders instead of global home directories.
 

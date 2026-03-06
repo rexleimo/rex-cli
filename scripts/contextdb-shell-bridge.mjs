@@ -74,12 +74,20 @@ function normalizeCodeHome(env, cwd) {
   const codexHome = env.CODEX_HOME;
   if (!codexHome) return;
 
-  let normalized = codexHome;
-  if (!path.isAbsolute(codexHome)) {
-    const home = env.HOME || env.USERPROFILE || cwd;
-    normalized = path.join(home, '.codex');
-    env.CODEX_HOME = normalized;
+  let normalized = codexHome.trim();
+  const home = env.HOME || env.USERPROFILE || '';
+
+  if (normalized === '~') {
+    normalized = home || normalized;
+  } else if (normalized.startsWith('~/') || normalized.startsWith('~\\')) {
+    const suffix = normalized.slice(2);
+    normalized = home ? path.join(home, suffix) : normalized;
   }
+
+  if (!path.isAbsolute(normalized)) {
+    normalized = path.resolve(cwd, normalized);
+  }
+  env.CODEX_HOME = normalized;
 
   if (!existsSync(normalized)) {
     try {

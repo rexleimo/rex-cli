@@ -18,13 +18,17 @@ _ctxdb_normalize_codex_home() {
     return 0
   fi
 
-  # Avoid relative CODEX_HOME like ".codex" that breaks in other projects.
-  if [[ "$codex_home" != /* ]]; then
-    codex_home="$HOME/.codex"
-    mkdir -p "$codex_home" >/dev/null 2>&1 || true
-    export CODEX_HOME="$codex_home"
-    return 0
+  # Resolve relative CODEX_HOME against current working directory.
+  if [[ "$codex_home" == "~" ]]; then
+    codex_home="$HOME"
+  elif [[ "$codex_home" == "~/"* ]]; then
+    codex_home="$HOME/${codex_home#\~/}"
   fi
+
+  if [[ "$codex_home" != /* ]]; then
+    codex_home="$PWD/$codex_home"
+  fi
+  export CODEX_HOME="$codex_home"
 
   if [[ ! -d "$codex_home" ]]; then
     mkdir -p "$codex_home" >/dev/null 2>&1 || true

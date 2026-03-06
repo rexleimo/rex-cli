@@ -28,6 +28,9 @@ Options:
   --dry-run           Skip remote model call, write synthetic response for pipeline testing
   --max-log-chars <n> Max characters stored in event logs (default: 8000)
   -h, --help          Show this help`);
+  console.log(`
+Environment:
+  CTXDB_AUTO_REBUILD_NATIVE 1/true/yes/on to auto-rebuild better-sqlite3 on Node ABI mismatch (default: on)`);
 }
 
 function runCommand(command, args, options = {}) {
@@ -52,6 +55,42 @@ function ensureSuccess(result, context) {
     const detail = stderr || stdout || `exit=${result.status}`;
     throw new Error(`${context}: ${detail}`);
   }
+}
+
+function parseBoolEnv(value, defaultValue) {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return defaultValue;
+  }
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on') {
+    return true;
+  }
+  if (normalized === '0' || normalized === 'false' || normalized === 'no' || normalized === 'off') {
+    return false;
+  }
+  return defaultValue;
+}
+
+export function shouldAutoRebuildNative(env = process.env) {
+  return parseBoolEnv(env.CTXDB_AUTO_REBUILD_NATIVE, true);
+}
+
+function getCommandFailureDetail(result) {
+  if (result.error) {
+    return result.error.message || String(result.error);
+  }
+  const stderr = (result.stderr || '').trim();
+  const stdout = (result.stdout || '').trim();
+  return stderr || stdout || `exit=${result.status ?? 1}`;
+}
+
+export function isBetterSqlite3AbiMismatch(detail) {
+  if (!detail) return false;
+  const normalized = String(detail).toLowerCase();
+  const mentionsAddon = normalized.includes('better_sqlite3.node') || normalized.includes('better-sqlite3');
+  const mentionsAbi = normalized.includes('node_module_version')
+    || normalized.includes('compiled against a different node.js version');
+  return mentionsAddon && mentionsAbi;
 }
 
 function resolveWorkspaceRoot(cwd) {
@@ -153,12 +192,44 @@ function validateOpts(opts) {
   }
 }
 
+let nativeRepairAttempted = false;
+
 function ctx(workspaceRoot, subcommand, args) {
-  const result = runCommand('npm', ['run', '-s', 'contextdb', '--', subcommand, '--workspace', workspaceRoot, ...args], {
+  const commandArgs = ['run', '-s', 'contextdb', '--', subcommand, '--workspace', workspaceRoot, ...args];
+  const firstResult = runCommand('npm', commandArgs, {
     cwd: MCP_DIR,
   });
-  ensureSuccess(result, `contextdb ${subcommand} failed`);
-  return (result.stdout || '').trim();
+
+  if (!firstResult.error && firstResult.status === 0) {
+    return (firstResult.stdout || '').trim();
+  }
+
+  const firstFailure = getCommandFailureDetail(firstResult);
+  const shouldRetryWithRepair = !nativeRepairAttempted
+    && shouldAutoRebuildNative(process.env)
+    && isBetterSqlite3AbiMismatch(firstFailure);
+
+  if (!shouldRetryWithRepair) {
+    ensureSuccess(firstResult, `contextdb ${subcommand} failed`);
+    return (firstResult.stdout || '').trim();
+  }
+
+  nativeRepairAttempted = true;
+  console.warn('[contextdb] Detected better-sqlite3 Node ABI mismatch. Running `npm rebuild better-sqlite3` and retrying once.');
+
+  const rebuildResult = runCommand('npm', ['rebuild', 'better-sqlite3'], {
+    cwd: MCP_DIR,
+  });
+  if (rebuildResult.error || rebuildResult.status !== 0) {
+    const rebuildFailure = getCommandFailureDetail(rebuildResult);
+    throw new Error(`contextdb ${subcommand} failed: ${firstFailure}\nauto-rebuild failed: ${rebuildFailure}`);
+  }
+
+  const retryResult = runCommand('npm', commandArgs, {
+    cwd: MCP_DIR,
+  });
+  ensureSuccess(retryResult, `contextdb ${subcommand} failed`);
+  return (retryResult.stdout || '').trim();
 }
 
 function parseJsonValue(text, getter) {

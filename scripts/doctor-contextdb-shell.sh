@@ -23,7 +23,7 @@ echo "CODEX_HOME: ${CODEX_HOME:-<unset>}"
 
 if [[ -n "${CODEX_HOME:-}" ]]; then
   if [[ "${CODEX_HOME}" != /* ]]; then
-    echo "[warn] CODEX_HOME is relative (${CODEX_HOME}); recommend: export CODEX_HOME=\"\$HOME/.codex\""
+    echo "[warn] CODEX_HOME is relative (${CODEX_HOME}); wrappers resolve it against current working directory at runtime"
   elif [[ ! -d "${CODEX_HOME}" ]]; then
     echo "[warn] CODEX_HOME directory does not exist (${CODEX_HOME})"
   else

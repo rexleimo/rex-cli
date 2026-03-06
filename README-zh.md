@@ -221,7 +221,11 @@ contextdb init failed: ... better_sqlite3.node ...
 - `mcp-server/node_modules/better-sqlite3` 是原生模块，必须和当前 Node ABI 一致。
 - 常见场景是你在 Node 22 项目里运行 `codex`，但 `aios/mcp-server` 依赖是用 Node 20 安装的。
 
-修复：
+当前行为：
+- 包装器会自动识别该错误，并先执行一次 `npm rebuild better-sqlite3` 后重试。
+- 如需严格失败不自动修复，可设置 `CTXDB_AUTO_REBUILD_NATIVE=0`。
+
+手动修复（自动重建失败时）：
 
 ```bash
 cd "$ROOTPATH/mcp-server"
@@ -250,7 +254,7 @@ ContextDB 包装和 CLI 的 Skills 加载是两层机制：
 - skills 安装脚本默认会跳过同名已有目录；只有你明确要替换时再使用 `--force` / `-Force`。
 - 安装在 `~/.codex/skills`、`~/.claude/skills`、`~/.gemini/skills`、`~/.config/opencode/skills` 的技能是全局可见。
 - 仅项目可见的技能应放在 `<repo>/.codex/skills`、`<repo>/.claude/skills`。
-- `CODEX_HOME` 建议保持为绝对路径（推荐 `~/.codex`），不要设置为相对路径 `.codex`。
+- `CODEX_HOME` 可以使用相对路径（包装器会在运行时按当前工作目录解析），但全局场景仍推荐绝对路径以减少歧义。
 
 如果你不希望跨项目复用技能，请把自定义技能放在仓库本地目录，而不是 `~` 下的全局目录。
 

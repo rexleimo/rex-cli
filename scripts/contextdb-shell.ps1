@@ -17,11 +17,20 @@ function Normalize-CodexHome {
     return
   }
 
-  # Convert relative CODEX_HOME (e.g. ".codex") to absolute user-home path.
-  if (-not [System.IO.Path]::IsPathRooted($codexHome)) {
-    $codexHome = Join-Path $HOME ".codex"
-    $env:CODEX_HOME = $codexHome
+  if ($codexHome -eq "~") {
+    $codexHome = $HOME
+  } elseif ($codexHome -match '^~[\\/](.*)$') {
+    $codexHome = Join-Path $HOME $Matches[1]
   }
+
+  # Resolve relative CODEX_HOME (e.g. ".codex") against current working directory.
+  if (-not [System.IO.Path]::IsPathRooted($codexHome)) {
+    $cwd = (Get-Location).Path
+    $codexHome = [System.IO.Path]::GetFullPath((Join-Path $cwd $codexHome))
+  } else {
+    $codexHome = [System.IO.Path]::GetFullPath($codexHome)
+  }
+  $env:CODEX_HOME = $codexHome
 
   if (-not (Test-Path $codexHome)) {
     New-Item -Path $codexHome -ItemType Directory -Force | Out-Null

@@ -100,9 +100,6 @@ $BEGIN_MARK
 # ContextDB transparent CLI wrappers (codex/claude/gemini)
 export ROOTPATH="\${ROOTPATH:-$ROOT_DIR}"
 export CTXDB_WRAP_MODE="\${CTXDB_WRAP_MODE:-$WRAP_MODE}"
-if [[ -n "\${CODEX_HOME:-}" ]] && [[ "\$CODEX_HOME" != /* ]]; then
-  export CODEX_HOME="\$HOME/.codex"
-fi
 if [[ -f "\$ROOTPATH/scripts/contextdb-shell.zsh" ]]; then
   source "\$ROOTPATH/scripts/contextdb-shell.zsh"
 fi
