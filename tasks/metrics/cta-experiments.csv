@@ -1,2 +1,2 @@
 date,page,slot,variant,utm_content,views,clicks,ctr,stars_before,stars_after,decision,notes
-2026-03-06,index.md,home_hero,A,home_hero_star,,,,0,0,baseline,initial instrumentation
+2026-03-06,index.md,home_hero,A,home_hero_star,0,0,,2,2,running,awaiting first full-day sample

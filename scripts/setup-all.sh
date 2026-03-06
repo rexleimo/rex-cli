@@ -124,7 +124,11 @@ if has_component browser; then
   if [[ "$SKIP_PLAYWRIGHT_INSTALL" == "true" ]]; then
     browser_args+=(--skip-playwright-install)
   fi
-  run_script "$SCRIPT_DIR/install-browser-mcp.sh" "${browser_args[@]}"
+  if [[ ${#browser_args[@]} -gt 0 ]]; then
+    run_script "$SCRIPT_DIR/install-browser-mcp.sh" "${browser_args[@]}"
+  else
+    run_script "$SCRIPT_DIR/install-browser-mcp.sh"
+  fi
   if [[ "$SKIP_DOCTOR" != "true" ]]; then
     run_script "$SCRIPT_DIR/doctor-browser-mcp.sh"
   fi
