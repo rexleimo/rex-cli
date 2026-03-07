@@ -13,3 +13,8 @@ description: RexAI CLI エコシステム向けの成長・技術記事。
 - [ローンチ記事](launch-post.md)
 - [CLI 比較](cli-comparison-post.md)
 - [自動化プレイブック](automation-playbook-post.md)
+
+## 最新記事
+
+- [もう手動で小红書をやらなくていい！AIで毎日2時間増やす自動化運用術](xiaohongshu-automation.md)
+- [2026年AIプログラミングCLI比較：Claude Code vs Codex vs Gemini](ai-cli-comparison.md)
