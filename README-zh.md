@@ -27,6 +27,12 @@ source ~/.zshrc
 codex
 ```
 
+交互式安装（TUI）：
+
+```bash
+scripts/aios.sh
+```
+
 30 秒上手（Windows PowerShell）：
 
 ```powershell
@@ -35,6 +41,12 @@ cd rex-cli
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components all -Mode opt-in
 . $PROFILE
 codex
+```
+
+交互式安装（TUI）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\aios.ps1
 ```
 
 ## 你最关心的点：为什么直接输入 `codex` 也会带 ContextDB？

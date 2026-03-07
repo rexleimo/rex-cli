@@ -27,6 +27,12 @@ source ~/.zshrc
 codex
 ```
 
+Interactive setup (TUI):
+
+```bash
+scripts/aios.sh
+```
+
 30-second setup (Windows PowerShell):
 
 ```powershell
@@ -35,6 +41,12 @@ cd rex-cli
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-all.ps1 -Components all -Mode opt-in
 . $PROFILE
 codex
+```
+
+Interactive setup (TUI):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\aios.ps1
 ```
 
 ## Why does `codex` load ContextDB automatically?
