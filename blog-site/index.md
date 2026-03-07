@@ -16,5 +16,5 @@ Product documentation is published separately at [cli.rexai.top](https://cli.rex
 
 ## Latest Posts
 
-- [Stop Manual Work! How I Use AI to Automate Xiaohongshu Operations](xiaohongshu-automation.md)
-- [2026 AI Programming CLI Showdown: Claude Code vs Codex vs Gemini](ai-cli-comparison.md)
+- [I Automated Xiaohongshu Operations with AI - Now My Colleagues Think I Hired an Assistant](xiaohongshu-automation.md)
+- [Stop Wasting Time Choosing AI Coding Tools in 2026](ai-cli-comparison.md)
