@@ -2,7 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { tools } from '../src/browser/index.js';
-import { resolveLaunchHeadless } from '../src/browser/launcher.js';
+import {
+  isUserDataDirLockedError,
+  resolveLaunchHeadless,
+  resolveRequireCdp,
+} from '../src/browser/launcher.js';
 
 test('resolveLaunchHeadless defaults to visible browser', () => {
   const result = resolveLaunchHeadless({}, { name: 'default' }, undefined);
@@ -27,4 +31,44 @@ test('browser_launch schema exposes visible toggle for agents', () => {
   assert.equal(typeof launchTool?.description, 'string');
   assert.match(launchTool?.description ?? '', /visible|headful/i);
   assert.equal('visible' in ((launchTool?.inputSchema as any)?.properties ?? {}), true);
+});
+
+test('resolveRequireCdp prefers profile setting over environment', () => {
+  assert.equal(resolveRequireCdp({ name: 'default', requireCdp: true }, 'false'), true);
+  assert.equal(resolveRequireCdp({ name: 'default', requireCdp: false }, 'true'), false);
+});
+
+test('resolveRequireCdp falls back to environment flag when profile omits it', () => {
+  assert.equal(resolveRequireCdp({ name: 'default' }, 'true'), true);
+  assert.equal(resolveRequireCdp({ name: 'default' }, undefined), false);
+});
+
+test('isUserDataDirLockedError detects common chrome singleton lock messages', () => {
+  assert.equal(
+    isUserDataDirLockedError(new Error('Opening in existing browser session.')),
+    true
+  );
+  assert.equal(
+    isUserDataDirLockedError(new Error('Profile appears to be in use by another process.')),
+    true
+  );
+  assert.equal(
+    isUserDataDirLockedError(new Error('ProcessSingleton: could not create lock file')),
+    true
+  );
+  assert.equal(
+    isUserDataDirLockedError(new Error('正在现有的浏览器会话中打开。')),
+    true
+  );
+});
+
+test('isUserDataDirLockedError ignores unrelated launch errors', () => {
+  assert.equal(
+    isUserDataDirLockedError(new Error('connect ECONNREFUSED 127.0.0.1:9222')),
+    false
+  );
+  assert.equal(
+    isUserDataDirLockedError(new Error('net::ERR_NAME_NOT_RESOLVED')),
+    false
+  );
 });

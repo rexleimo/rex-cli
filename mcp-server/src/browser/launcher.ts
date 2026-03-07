@@ -1,6 +1,7 @@
 // mcp-server/src/browser/launcher.ts
 import { chromium, type Browser, type BrowserContext } from 'playwright';
 import * as fs from 'fs';
+import * as path from 'path';
 import type { BrowserProfile, ProfileState } from './types.js';
 import { profileManager } from './profiles.js';
 
@@ -45,6 +46,25 @@ function parseHeadlessEnv(value: string | undefined): boolean | undefined {
   if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
   if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
   return undefined;
+}
+
+function parseBooleanEnv(value: string | undefined): boolean | undefined {
+  if (!value) return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+  return undefined;
+}
+
+export function resolveRequireCdp(
+  profile: BrowserProfile,
+  envValue: string | undefined
+): boolean {
+  if (typeof profile.requireCdp === 'boolean') {
+    return profile.requireCdp;
+  }
+
+  return parseBooleanEnv(envValue) ?? false;
 }
 
 export function resolveLaunchHeadless(
@@ -110,6 +130,45 @@ function resolveExecutablePath(profile: BrowserProfile): string | undefined {
   return undefined;
 }
 
+function resolveIsolateOnLock(profile: BrowserProfile, envValue: string | undefined): boolean {
+  if (typeof profile.isolateOnLock === 'boolean') return profile.isolateOnLock;
+  return parseBooleanEnv(envValue) ?? true;
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+const USER_DATA_DIR_LOCK_PATTERNS: RegExp[] = [
+  /existing browser session/i,
+  /opening in existing browser session/i,
+  /profile appears to be in use/i,
+  /user data directory is already in use/i,
+  /already in use by another/i,
+  /processsingleton/i,
+  /singletonlock/i,
+  /正在现有的浏览器会话中打开/,
+];
+
+export function isUserDataDirLockedError(error: unknown): boolean {
+  const message = toErrorMessage(error);
+  return USER_DATA_DIR_LOCK_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+function createIsolatedUserDataDir(baseUserDataDir: string, profileName: string): string {
+  const sanitized = profileName.replace(/[^a-z0-9._-]/gi, '_').toLowerCase() || 'profile';
+  const isolatedRoot = path.join(path.dirname(baseUserDataDir), '.isolated');
+  fs.mkdirSync(isolatedRoot, { recursive: true });
+  const mkdtempPrefix = path.join(isolatedRoot, `${sanitized}-${process.pid}-`);
+  return fs.mkdtempSync(mkdtempPrefix);
+}
+
+interface LaunchPersistentResult {
+  context: BrowserContext;
+  userDataDir: string;
+  isolated: boolean;
+}
+
 export class BrowserLauncher {
   private state: Map<string, ProfileState> = new Map();
   private _pageIdCounter = 0;
@@ -128,6 +187,42 @@ export class BrowserLauncher {
 
   set pageIdCounter(value: number) {
     this._pageIdCounter = value;
+  }
+
+  private async launchPersistentContextWithIsolation(
+    profileName: string,
+    userDataDir: string,
+    options: {
+      headless: boolean;
+      executablePath?: string;
+      isolateOnLock: boolean;
+    }
+  ): Promise<LaunchPersistentResult> {
+    const launchOptions = {
+      headless: options.headless,
+      args: STEALTH_ARGS,
+      ignoreDefaultArgs: IGNORE_DEFAULT_ARGS,
+      executablePath: options.executablePath,
+      viewport: { width: 1280, height: 720 },
+    };
+
+    try {
+      const context = await chromium.launchPersistentContext(userDataDir, launchOptions);
+      return { context, userDataDir, isolated: false };
+    } catch (firstError) {
+      if (!options.isolateOnLock || !isUserDataDirLockedError(firstError)) {
+        throw firstError;
+      }
+
+      const isolatedUserDataDir = createIsolatedUserDataDir(userDataDir, profileName);
+      const firstReason = toErrorMessage(firstError);
+      console.error(
+        `[browser_launch] profile "${profileName}" userDataDir in use (${userDataDir}), retry with isolated dir: ${isolatedUserDataDir}. reason=${firstReason}`
+      );
+
+      const context = await chromium.launchPersistentContext(isolatedUserDataDir, launchOptions);
+      return { context, userDataDir: isolatedUserDataDir, isolated: true };
+    }
   }
 
   async launch(profileName: string = 'default', url?: string, headless?: boolean, visible?: boolean): Promise<ProfileState> {
@@ -149,20 +244,31 @@ export class BrowserLauncher {
     }
 
     // 使用配置的用户数据目录（用于保存登录状态）
-    const userDataDir = profile.userDataDir
+    const baseUserDataDir = profile.userDataDir
       ? profileManager.resolveWorkspacePath(profile.userDataDir)
       : profileDir;
 
     const launchPreference = resolveLaunchHeadless({ headless, visible }, profile, process.env.BROWSER_HEADLESS);
     const resolvedHeadless = launchPreference.headless;
+    const requireCdp = resolveRequireCdp(profile, process.env.BROWSER_REQUIRE_CDP);
+    const isolateOnLock = resolveIsolateOnLock(profile, process.env.BROWSER_ISOLATE_ON_LOCK);
     const executablePath = resolveExecutablePath(profile);
     const cdpEndpoint = profile.cdpUrl || (profile.cdpPort ? `http://127.0.0.1:${profile.cdpPort}` : undefined);
+
+    if (requireCdp && !cdpEndpoint) {
+      throw new Error(
+        `Profile "${profileName}" requires a fingerprint browser CDP connection, ` +
+        'but no cdpUrl/cdpPort is configured in config/browser-profiles.json.'
+      );
+    }
 
     let browser: Browser;
     let context: BrowserContext;
     let connectedOverCdp = false;
     let launchMode: ProfileState['launchMode'] = 'ephemeral-local';
     let effectiveProfile = profileName;
+    let userDataDir = baseUserDataDir;
+    let isolated = false;
 
     try {
       // 优先支持指纹浏览器/CDP 接入，避免本地启动 Chrome for Testing 崩溃。
@@ -176,45 +282,45 @@ export class BrowserLauncher {
             ? contexts[0]
             : await browser.newContext({ viewport: { width: 1280, height: 720 } });
         } catch (cdpError) {
-          // 新用户最常见问题：默认 profile 配置了 CDP，但本机没有启动 9222。
-          // 对 default profile 自动降级到 local，减少首次接入成本。
-          if (profileName !== 'default') {
+          if (requireCdp || profileName !== 'default') {
             throw cdpError;
           }
 
+          // 仅在显式允许回退时，对 default profile 自动降级到 local。
           const fallbackProfile = profileManager.getProfile('local') || { name: 'local', userDataDir: '.browser-profiles/local' };
           const fallbackUserDataDir = fallbackProfile.userDataDir
             ? profileManager.resolveWorkspacePath(fallbackProfile.userDataDir)
             : profileManager.getProfileDir('local');
           const fallbackExecutablePath = resolveExecutablePath(fallbackProfile);
-
-          context = await chromium.launchPersistentContext(fallbackUserDataDir, {
+          const fallbackLaunch = await this.launchPersistentContextWithIsolation('local', fallbackUserDataDir, {
             headless: resolvedHeadless,
-            args: STEALTH_ARGS,
-            ignoreDefaultArgs: IGNORE_DEFAULT_ARGS,
             executablePath: fallbackExecutablePath,
-            viewport: { width: 1280, height: 720 },
+            isolateOnLock,
           });
+          context = fallbackLaunch.context;
           browser = context.browser()!;
-          launchMode = 'persistent-local-fallback';
+          launchMode = fallbackLaunch.isolated ? 'persistent-local-fallback-isolated' : 'persistent-local-fallback';
           effectiveProfile = 'local';
+          userDataDir = fallbackLaunch.userDataDir;
+          isolated = fallbackLaunch.isolated;
 
-          const reason = cdpError instanceof Error ? cdpError.message : String(cdpError);
+          const reason = toErrorMessage(cdpError);
           console.error(
             `[browser_launch] default profile cdp fallback -> local. reason=${reason}`
           );
         }
-      } else if (userDataDir) {
+      } else if (baseUserDataDir) {
         // 使用 launchPersistentContext 来支持 userDataDir（持久化登录状态）
-        context = await chromium.launchPersistentContext(userDataDir, {
+        const persistentLaunch = await this.launchPersistentContextWithIsolation(profileName, baseUserDataDir, {
           headless: resolvedHeadless,
-          args: STEALTH_ARGS,
-          ignoreDefaultArgs: IGNORE_DEFAULT_ARGS,
           executablePath,
-          viewport: { width: 1280, height: 720 },
+          isolateOnLock,
         });
+        context = persistentLaunch.context;
         browser = context.browser()!;
-        launchMode = 'persistent-local';
+        launchMode = persistentLaunch.isolated ? 'persistent-local-isolated' : 'persistent-local';
+        userDataDir = persistentLaunch.userDataDir;
+        isolated = persistentLaunch.isolated;
       } else {
         browser = await chromium.launch({
           headless: resolvedHeadless,
@@ -228,11 +334,13 @@ export class BrowserLauncher {
         launchMode = 'ephemeral-local';
       }
     } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
+      const reason = toErrorMessage(error);
       const tips = [
         `profile=${profileName}`,
         cdpEndpoint ? `cdp=${cdpEndpoint}` : 'cdp=disabled',
         `headless=${String(resolvedHeadless)}`,
+        `isolateOnLock=${String(isolateOnLock)}`,
+        `userDataDir=${baseUserDataDir}`,
         executablePath ? `executablePath=${executablePath}` : 'executablePath=playwright-default',
       ].join(', ');
       throw new Error(
@@ -256,6 +364,9 @@ export class BrowserLauncher {
       launchMode,
       requestedProfile: profileName,
       effectiveProfile,
+      userDataDir,
+      baseUserDataDir,
+      isolated,
     };
 
     this.state.set(profileName, state);
@@ -295,6 +406,15 @@ export class BrowserLauncher {
       }
       if (state.browser) {
         await state.browser.close();
+      }
+    }
+
+    if (state.isolated && state.userDataDir?.includes(`${path.sep}.isolated${path.sep}`)) {
+      try {
+        fs.rmSync(state.userDataDir, { recursive: true, force: true });
+      } catch (cleanupError) {
+        const reason = toErrorMessage(cleanupError);
+        console.error(`[browser_close] failed to cleanup isolated profile dir: ${state.userDataDir}. reason=${reason}`);
       }
     }
 

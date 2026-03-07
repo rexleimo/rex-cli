@@ -36,19 +36,22 @@ const AUTH_URL_PATTERNS: RegExp[] = [
   /passport/i,
 ];
 
-const AUTH_TEXT_PATTERNS: RegExp[] = [
-  /sign in/i,
-  /log in/i,
+const AUTH_TEXT_PATTERNS_HIGH_CONFIDENCE: RegExp[] = [
   /continue with google/i,
   /login to/i,
-  /verify/i,
-  /two-factor/i,
+  /two-factor|2fa/i,
   /验证码/,
-  /登录/,
   /请先登录/,
   /扫码登录/,
-  /账号/,
+  /\bpassword\b/i,
   /密码/,
+];
+
+const AUTH_TEXT_PATTERNS_LOW_CONFIDENCE: RegExp[] = [
+  /sign in/i,
+  /log in/i,
+  /登录/,
+  /账号/,
 ];
 
 const AUTH_SELECTORS: string[] = [
@@ -243,8 +246,12 @@ export async function detectAuthRequired(page: Page): Promise<AuthCheckResult> {
   }
 
   const combined = `${title}\n${textSample}`;
-  if (AUTH_TEXT_PATTERNS.some((p) => p.test(combined))) {
-    signals.push('auth-text-pattern');
+  const hasHighConfidenceTextSignal = AUTH_TEXT_PATTERNS_HIGH_CONFIDENCE.some((p) => p.test(combined));
+  const hasLowConfidenceTextSignal = AUTH_TEXT_PATTERNS_LOW_CONFIDENCE.some((p) => p.test(combined));
+  if (hasHighConfidenceTextSignal) {
+    signals.push('auth-text-high-pattern');
+  } else if (hasLowConfidenceTextSignal) {
+    signals.push('auth-text-low-pattern');
   }
 
   for (const selector of AUTH_SELECTORS) {
@@ -259,10 +266,18 @@ export async function detectAuthRequired(page: Page): Promise<AuthCheckResult> {
     }
   }
 
-  const requiresHumanLogin = signals.length > 0;
+  const hasUrlSignal = signals.includes('auth-url-pattern');
+  const hasSelectorSignal = signals.some((signal) => signal.startsWith('selector:'));
+  const requiresHumanLogin = hasUrlSignal || hasSelectorSignal || hasHighConfidenceTextSignal;
+  const reason = requiresHumanLogin
+    ? 'Potential authentication or session gate detected'
+    : hasLowConfidenceTextSignal
+      ? 'Login CTA text detected but no hard auth gate signal'
+      : 'No auth gate detected';
+
   return {
     requiresHumanLogin,
-    reason: requiresHumanLogin ? 'Potential authentication or session gate detected' : 'No auth gate detected',
+    reason,
     signals,
     host,
     url,

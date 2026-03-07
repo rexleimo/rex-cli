@@ -81,7 +81,8 @@ Use `config/browser-profiles.json` (project root):
     },
     "local": {
       "name": "local",
-      "userDataDir": ".browser-profiles/local"
+      "userDataDir": ".browser-profiles/local",
+      "isolateOnLock": true
     }
   }
 }
@@ -104,6 +105,7 @@ If you see `Google Chrome for Testing 意外退出`:
 ## Notes
 
 - The server auto-detects workspace root by locating `config/browser-profiles.json`.
+- For local persistent profiles, if `userDataDir` is locked by another browser process, server retries with an isolated runtime profile directory by default (`isolateOnLock=true`).
 - `browser_snapshot` now returns a layout-first payload: `pageSummary`, `regions`, `elements`, `textBlocks`, and `visualHints`.
 - Recommended reasoning order: `challenge/auth` -> `pageSummary` -> `regions` -> `elements` -> `textBlocks` -> optional `htmlPreview`.
 - For interactive agent work, prefer `browser_launch` with `visible:true`; use `headless:true` only for non-GUI environments or background smoke tests.
@@ -120,6 +122,7 @@ Use optional pacing to reduce flaky fast-action races:
 - `BROWSER_ACTION_PACING=true|false` (default: `true`)
 - `BROWSER_ACTION_MIN_MS` (default: `400`)
 - `BROWSER_ACTION_MAX_MS` (default: `1200`)
+- `BROWSER_ISOLATE_ON_LOCK=true|false` (default: `true`, retries with isolated profile dir when the base `userDataDir` is in use)
 
 ## Filesystem Context DB (for Codex/Claude/Gemini)
 

@@ -23,6 +23,8 @@ description: Use when executing any skill or browser automation task - enforces 
 0. 启动浏览器时默认要求可见界面
    - 优先：`browser_launch { profile: 'default', visible: true }`
    - 仅在无图形环境或后台 smoke test 时才用 `headless: true`
+   - 当同一 `userDataDir` 被其他进程占用时，MCP 会默认自动切到隔离 profile 目录重试（`BROWSER_ISOLATE_ON_LOCK=true`）
+   - 若目标是“多个 agent 共享同一登录态”，优先使用 CDP 连接同一个已启动浏览器，而不是共享本地 profile 目录
 
 1. 优先使用 browser_snapshot 获取布局快照
    - 先读 `pageSummary`、`regions`、`elements`、`textBlocks`、`visualHints`

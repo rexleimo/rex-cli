@@ -9,6 +9,8 @@ export interface BrowserProfile {
   executablePath?: string;
   userDataDir?: string;
   headless?: boolean;
+  requireCdp?: boolean;
+  isolateOnLock?: boolean;
 }
 
 export interface ProfileState {
@@ -19,9 +21,18 @@ export interface ProfileState {
   connectedOverCdp?: boolean;
   headless?: boolean;
   visible?: boolean;
-  launchMode?: 'cdp' | 'persistent-local' | 'persistent-local-fallback' | 'ephemeral-local';
+  launchMode?:
+    | 'cdp'
+    | 'persistent-local'
+    | 'persistent-local-isolated'
+    | 'persistent-local-fallback'
+    | 'persistent-local-fallback-isolated'
+    | 'ephemeral-local';
   requestedProfile?: string;
   effectiveProfile?: string;
+  userDataDir?: string;
+  baseUserDataDir?: string;
+  isolated?: boolean;
 }
 
 export interface BrowserState {

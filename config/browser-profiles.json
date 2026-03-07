@@ -2,7 +2,8 @@
   "profiles": {
     "default": {
       "name": "default",
-      "cdpPort": 9222
+      "cdpPort": 9222,
+      "requireCdp": true
     },
     "local": {
       "name": "local",

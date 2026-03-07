@@ -107,3 +107,79 @@ test('buildHybridLayoutModel requests visual fallback for canvas-heavy modal pag
   assert.match(result.visualHints.reason, /canvas|visual|modal/i);
   assert.equal(result.regions.some((region) => region.name === 'modal'), true);
 });
+
+test('buildHybridLayoutModel normalizes oversize feed boxes before region bucketing', () => {
+  const result = buildHybridLayoutModel({
+    title: '哔哩哔哩',
+    url: 'https://www.bilibili.com/',
+    viewport: { width: 1280, height: 720 },
+    textSample: '首页 番剧 登录',
+    stats: {
+      imageCount: 26,
+      canvasCount: 0,
+      modalCount: 0,
+      textNodeCount: 1,
+      interactiveCount: 3,
+    },
+    elements: [
+      {
+        role: 'link',
+        tag: 'a',
+        text: '番剧',
+        selectorHint: 'a.channel-link',
+        clickable: true,
+        x: -510,
+        y: 172,
+        width: 856,
+        height: 404,
+        zIndex: 0,
+      },
+      {
+        role: 'link',
+        tag: 'a',
+        text: '社区中心',
+        selectorHint: 'a.community-link',
+        clickable: true,
+        x: 945,
+        y: 172,
+        width: 275,
+        height: 290,
+        zIndex: 0,
+      },
+      {
+        role: 'link',
+        tag: 'a',
+        text: '推荐视频',
+        selectorHint: 'a.feed-card',
+        clickable: true,
+        x: 60,
+        y: 172,
+        width: 1140,
+        height: 404,
+        zIndex: 0,
+      },
+    ],
+    textBlocks: [
+      {
+        text: '即便参加了最终试玩，我也无法窥见《红色沙漠》的全貌？！',
+        x: 0,
+        y: 255,
+        width: 1280,
+        height: 1696,
+      },
+    ],
+  });
+
+  assert.equal(result.regions.some((region) => region.name === 'footer'), false);
+  assert.equal(result.regions.some((region) => region.name === 'main'), true);
+  assert.equal(result.regions.some((region) => region.name === 'left-sidebar'), true);
+  assert.equal(result.regions.some((region) => region.name === 'right-sidebar'), true);
+
+  for (const region of result.regions) {
+    assert.deepEqual(Object.keys(region.bbox).sort(), ['height', 'width', 'x', 'y']);
+    assert.equal(region.bbox.x >= 0, true);
+    assert.equal(region.bbox.y >= 0, true);
+    assert.equal(region.bbox.x + region.bbox.width <= 1280, true);
+    assert.equal(region.bbox.y + region.bbox.height <= 720, true);
+  }
+});

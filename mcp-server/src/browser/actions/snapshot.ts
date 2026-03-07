@@ -99,35 +99,44 @@ function clampText(value: string, maxChars: number): string {
 }
 
 function classifyRegion(box: LayoutBox, viewport: { width: number; height: number }, zIndex: number): RegionName {
+  const viewportWidth = Math.max(1, viewport.width || Math.round(box.x + box.width));
+  const viewportHeight = Math.max(1, viewport.height || Math.round(box.y + box.height));
   const xCenter = box.x + box.width / 2;
   const yCenter = box.y + box.height / 2;
-  const topBand = Math.max(80, viewport.height * 0.14);
-  const bottomBand = viewport.height * 0.88;
-  const leftBand = viewport.width * 0.24;
-  const rightBand = viewport.width * 0.76;
+  const topBand = Math.max(80, viewportHeight * 0.14);
+  const bottomBandCenter = viewportHeight * 0.88;
+  const leftBand = viewportWidth * 0.24;
+  const rightBand = viewportWidth * 0.76;
   const modalLike =
     zIndex >= 100 &&
-    box.width >= Math.max(80, viewport.width * 0.1) &&
+    box.width >= Math.max(80, viewportWidth * 0.1) &&
     box.height >= 40 &&
-    xCenter >= viewport.width * 0.2 &&
-    xCenter <= viewport.width * 0.8 &&
-    yCenter >= viewport.height * 0.12 &&
-    yCenter <= viewport.height * 0.88;
+    xCenter >= viewportWidth * 0.2 &&
+    xCenter <= viewportWidth * 0.8 &&
+    yCenter >= viewportHeight * 0.12 &&
+    yCenter <= viewportHeight * 0.88;
 
-  const sidebarLike = box.height >= viewport.height * 0.25;
+  const sidebarLike = box.height >= viewportHeight * 0.25;
 
   if (modalLike) return 'modal';
   if (xCenter <= leftBand && sidebarLike) return 'left-sidebar';
   if (xCenter >= rightBand && sidebarLike) return 'right-sidebar';
   if (box.y <= topBand) return 'header';
-  if (box.y + box.height >= bottomBand) return 'footer';
+  if (yCenter >= bottomBandCenter && box.height <= viewportHeight * 0.5) return 'footer';
   if (xCenter <= leftBand) return 'left-sidebar';
   if (xCenter >= rightBand) return 'right-sidebar';
   return 'main';
 }
 
 function unionBoxes(current: LayoutBox | undefined, next: LayoutBox): LayoutBox {
-  if (!current) return { ...next };
+  if (!current) {
+    return {
+      x: next.x,
+      y: next.y,
+      width: next.width,
+      height: next.height,
+    };
+  }
 
   const minX = Math.min(current.x, next.x);
   const minY = Math.min(current.y, next.y);
@@ -139,6 +148,36 @@ function unionBoxes(current: LayoutBox | undefined, next: LayoutBox): LayoutBox 
     y: minY,
     width: maxX - minX,
     height: maxY - minY,
+  };
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeBoxToViewport(box: LayoutBox, viewport: { width: number; height: number }): LayoutBox {
+  const viewportWidth = Math.max(0, viewport.width);
+  const viewportHeight = Math.max(0, viewport.height);
+
+  if (viewportWidth === 0 || viewportHeight === 0) {
+    return {
+      x: box.x,
+      y: box.y,
+      width: Math.max(0, box.width),
+      height: Math.max(0, box.height),
+    };
+  }
+
+  const left = clamp(box.x, 0, viewportWidth);
+  const top = clamp(box.y, 0, viewportHeight);
+  const right = clamp(box.x + box.width, 0, viewportWidth);
+  const bottom = clamp(box.y + box.height, 0, viewportHeight);
+
+  return {
+    x: left,
+    y: top,
+    width: Math.max(0, right - left),
+    height: Math.max(0, bottom - top),
   };
 }
 
@@ -169,18 +208,24 @@ function guessPageType(
 export function buildHybridLayoutModel(raw: HybridLayoutRawSnapshot): HybridLayoutModel {
   const viewport = raw.viewport ?? { width: 0, height: 0 };
 
-  const elements: HybridLayoutElement[] = (raw.elements ?? []).slice(0, 40).map((element) => ({
-    ...element,
-    text: clampText(element.text, 120),
-    selectorHint: clampText(element.selectorHint, 160),
-    region: classifyRegion(element, viewport, element.zIndex),
-  }));
+  const elements: HybridLayoutElement[] = (raw.elements ?? []).slice(0, 40).map((element) => {
+    const normalized = normalizeBoxToViewport(element, viewport);
+    return {
+      ...element,
+      text: clampText(element.text, 120),
+      selectorHint: clampText(element.selectorHint, 160),
+      region: classifyRegion(normalized.width > 0 && normalized.height > 0 ? normalized : element, viewport, element.zIndex),
+    };
+  });
 
-  const textBlocks: HybridTextBlock[] = (raw.textBlocks ?? []).slice(0, 20).map((block) => ({
-    ...block,
-    text: clampText(block.text, 200),
-    region: classifyRegion(block, viewport, 0),
-  }));
+  const textBlocks: HybridTextBlock[] = (raw.textBlocks ?? []).slice(0, 20).map((block) => {
+    const normalized = normalizeBoxToViewport(block, viewport);
+    return {
+      ...block,
+      text: clampText(block.text, 200),
+      region: classifyRegion(normalized.width > 0 && normalized.height > 0 ? normalized : block, viewport, 0),
+    };
+  });
 
   const regionState = new Map<RegionName, { bbox?: LayoutBox; itemCount: number; sampleText: string[] }>();
   for (const region of REGION_ORDER) {
@@ -188,8 +233,13 @@ export function buildHybridLayoutModel(raw: HybridLayoutRawSnapshot): HybridLayo
   }
 
   for (const item of [...elements, ...textBlocks]) {
+    const normalized = normalizeBoxToViewport(item, viewport);
+    if (normalized.width <= 0 || normalized.height <= 0) {
+      continue;
+    }
+
     const entry = regionState.get(item.region)!;
-    entry.bbox = unionBoxes(entry.bbox, item);
+    entry.bbox = unionBoxes(entry.bbox, normalized);
     entry.itemCount += 1;
     if (item.text && entry.sampleText.length < 3) {
       entry.sampleText.push(item.text);
